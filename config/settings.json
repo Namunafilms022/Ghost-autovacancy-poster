@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "Ghost-autovacancy-poster",
+    "version": "0.1.0",
+    "phase": "0",
+    "environment": "development",
+    "debug": true,
+    "log_level": "INFO"
+  },
+  "database": {
+    "type": "sqlite",
+    "path": "./ghost_vacancies.db",
+    "echo": false
+  },
+  "reader": {
+    "enabled": true,
+    "timeout": 30,
+    "max_retries": 3
+  },
+  "parser": {
+    "enabled": true,
+    "confidence_threshold": 0.7
+  },
+  "normalizer": {
+    "enabled": true,
+    "standardize_fields": true,
+    "trim_whitespace": true
+  },
+  "duplicate": {
+    "enabled": true,
+    "similarity_threshold": 0.85,
+    "algorithm": "basic"
+  },
+  "poster": {
+    "enabled": true,
+    "template_dir": "poster/templates",
+    "output_format": "html",
+    "theme": "professional"
+  },
+  "publisher": {
+    "enabled": false,
+    "platforms": []
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "text",
+    "file": "logs/app.log",
+    "max_size_mb": 100,
+    "backup_count": 5
+  },
+  "storage": {
+    "type": "local",
+    "path": "data/"
+  }
+}
