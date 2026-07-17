@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ v.title or 'Vacancy' }} — Detail{% endblock %}
+
+{% block content %}
+{% set label, cls = status_info(v) %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item"><a href="/vacancies">Vacancies</a></li>
+    <li class="breadcrumb-item active">#{{ v.id }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm border-0 rounded-3 h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h4 class="card-title mb-0">{{ v.title or 'Untitled Position' }}</h4>
+          <span class="badge bg-{{ cls }} badge-status ms-2">{{ label }}</span>
+        </div>
+
+        {% if original %}
+        <div class="alert alert-info py-2 small">
+          ⚠️ Marked as duplicate of <a href="/vacancies/{{ original.id }}" class="alert-link">Vacancy #{{ original.id }}</a>
+        </div>
+        {% endif %}
+
+        <div class="row">
+          <div class="col-6">
+            <div class="detail-label">Company</div>
+            <div class="detail-value">{{ v.company or '—' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">{{ v.location or '—' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="detail-label">Job Type</div>
+            <div class="detail-value">{{ v.job_type.replace('_', ' ').title() if v.job_type else '—' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="detail-label">Experience</div>
+            <div class="detail-value">{{ v.experience_level.replace('_', ' ').title() if v.experience_level else '—' }}</div>
+          </div>
+        </div>
+
+        <div class="detail-label mt-2">Salary</div>
+        <div class="detail-value">
+          {% if v.salary_min is not none and v.salary_max is not none %}
+            Rs. {{ "{:,.0f}".format(v.salary_min) }} — Rs. {{ "{:,.0f}".format(v.salary_max) }} /month
+          {% elif v.salary_min is not none %}
+            Rs. {{ "{:,.0f}".format(v.salary_min) }}+ /month
+          {% elif v.salary_max is not none %}
+            Up to Rs. {{ "{:,.0f}".format(v.salary_max) }} /month
+          {% else %}
+            Not specified
+          {% endif %}
+        </div>
+
+        <div class="detail-label">Received</div>
+        <div class="detail-value">{{ v.created_at.strftime('%B %d, %Y at %H:%M') if v.created_at else '—' }}</div>
+
+        {% if v.raw_message %}
+        <div class="detail-label mt-3">Raw Message</div>
+        <pre class="bg-light p-3 rounded small" style="max-height: 200px; overflow-y: auto; font-size: 0.8rem;">{{ v.raw_message }}</pre>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    {% if poster %}
+    <div class="card shadow-sm border-0 rounded-3 mb-3">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+        <span class="small text-muted">Poster ({{ poster.theme }} theme)</span>
+        <span class="small text-muted">{{ poster.created_at.strftime('%b %d, %H:%M') if poster.created_at else '' }}</span>
+      </div>
+      <div class="poster-frame">
+        <iframe srcdoc="{{ poster.html_content | e }}" title="Vacancy Poster"></iframe>
+      </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm border-0 rounded-3 mb-3">
+      <div class="card-body text-center py-5 text-muted">
+        <p class="mb-0">No poster generated yet.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0 rounded-3">
+      <div class="card-header bg-white py-2">
+        <span class="small fw-semibold">Published Posts</span>
+      </div>
+      <div class="card-body p-0">
+        {% if posts %}
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Platform</th>
+                <th>Status</th>
+                <th>Post ID</th>
+                <th>Published</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in posts %}
+              <tr>
+                <td>{{ p.platform }}</td>
+                <td>
+                  {% if p.status == 'published' %}
+                    <span class="badge bg-success badge-status">Published</span>
+                  {% elif p.status == 'failed' %}
+                    <span class="badge bg-danger badge-status">Failed</span>
+                  {% else %}
+                    <span class="badge bg-secondary badge-status">{{ p.status }}</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ p.external_id or '—' }}</td>
+                <td class="small text-muted">{{ p.published_at.strftime('%Y-%m-%d %H:%M') if p.published_at else '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <small>No posts published yet.</small>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

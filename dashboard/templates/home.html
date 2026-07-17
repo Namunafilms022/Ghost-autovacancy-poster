@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">Today's Overview</h4>
+  <small class="text-muted">{{ recent[0].created_at.strftime('%B %d, %Y') if recent else '' }}</small>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card stat-card bg-primary bg-opacity-10 p-3">
+      <div class="card-body text-center p-2">
+        <div class="display-5 fw-bold text-primary">{{ total_vacancies }}</div>
+        <div class="text-muted small">Vacancies Received</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-warning bg-opacity-10 p-3">
+      <div class="card-body text-center p-2">
+        <div class="display-5 fw-bold text-warning">{{ duplicates }}</div>
+        <div class="text-muted small">Duplicates Detected</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-success bg-opacity-10 p-3">
+      <div class="card-body text-center p-2">
+        <div class="display-5 fw-bold text-success">{{ published }}</div>
+        <div class="text-muted small">Published</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-danger bg-opacity-10 p-3">
+      <div class="card-body text-center p-2">
+        <div class="display-5 fw-bold text-danger">{{ failed }}</div>
+        <div class="text-muted small">Failed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3">
+  <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+    <h5 class="mb-0">Recent Vacancies</h5>
+    <a href="/vacancies" class="btn btn-outline-dark btn-sm">View All</a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 table-vacancies">
+        <thead class="table-light">
+          <tr>
+            <th>Title</th>
+            <th>Company</th>
+            <th>Location</th>
+            <th>Received</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in recent %}
+          {% set label, cls = status_info(v) %}
+          <tr>
+            <td class="fw-semibold">{{ v.title or 'Untitled' }}</td>
+            <td>{{ v.company or '—' }}</td>
+            <td>{{ v.location or '—' }}</td>
+            <td class="text-muted small">{{ v.created_at.strftime('%b %d, %H:%M') if v.created_at else '—' }}</td>
+            <td><span class="badge bg-{{ cls }} badge-status">{{ label }}</span></td>
+            <td><a href="/vacancies/{{ v.id }}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <p class="mb-0">No vacancies received today.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

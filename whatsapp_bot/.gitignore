@@ -1,0 +1,5 @@
+node_modules/
+whatsapp_session/
+*.session.json
+.wwebjs_auth/
+.wwebjs_cache/

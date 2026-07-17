@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+node_modules/
+whatsapp_session/
+.wwebjs_auth/
+.wwebjs_cache/
+*.session.json
+poster/output/
+.vacancies_summary.json
+config/settings.json
+config/__pycache__/

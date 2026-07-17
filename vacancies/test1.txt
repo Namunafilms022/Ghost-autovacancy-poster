@@ -1,0 +1,11 @@
+Job Vacancy
+Position: Web Developer
+Company: Tech Nepal Pvt Ltd
+Location: Kathmandu
+Salary: 50,000 NPR/month
+Experience: 2 years
+Requirements:
+- HTML
+- CSS
+- JavaScript
+Contact: 9851234567

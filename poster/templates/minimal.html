@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} - {{ company }}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #fafafa; display: flex; justify-content: center; padding: 40px 20px; color: #222; }
+  .poster-image { width: calc(100% + 96px); margin: -48px -48px 32px -48px; display: block; height: auto; max-height: 240px; object-fit: cover; }
+  .poster { max-width: 640px; width: 100%; background: #fff; padding: 48px; }
+  .company { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 20px; color: #000; }
+  .meta { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.8; }
+  .meta span { display: inline-block; margin-right: 16px; }
+  hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+  .section { margin-bottom: 24px; }
+  .section h2 { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .salary { font-size: 24px; font-weight: 600; }
+  .salary small { font-size: 13px; font-weight: 400; color: #888; }
+  .requirements { list-style: none; }
+  .requirements li { padding: 4px 0; font-size: 15px; color: #444; }
+  .requirements li::before { content: '-- '; color: #ccc; }
+  .benefits { list-style: none; }
+  .benefits li { display: inline; font-size: 13px; color: #888; }
+  .benefits li::after { content: ' / '; }
+  .benefits li:last-child::after { content: ''; }
+  .contact { font-size: 14px; color: #444; }
+  .contact a { color: #000; text-decoration: underline; }
+  .footer { margin-top: 40px; font-size: 11px; color: #bbb; }
+  .na { color: #ccc; }
+</style>
+</head>
+<body>
+<div class="poster">
+  {% if poster_image %}
+  <img class="poster-image" src="{{ poster_image }}" alt="{{ title }}" loading="lazy">
+  {% endif %}
+  <div class="company">{{ company }}</div>
+  <h1>{{ title }}</h1>
+  <div class="meta">
+    {% if location %}<span>📍 {{ location }}</span>{% endif %}
+    {% if job_type %}<span>💼 {{ job_type }}</span>{% endif %}
+    {% if experience_level %}<span>📊 {{ experience_level }}</span>{% endif %}
+  </div>
+
+  {% if salary_min is not none or salary_max is not none %}
+  <hr>
+  <div class="section">
+    <h2>Salary</h2>
+    <div class="salary">
+      {% if salary_min is not none and salary_max is not none %}
+        Rs. {{ "{:,.0f}".format(salary_min) }} - Rs. {{ "{:,.0f}".format(salary_max) }}
+      {% elif salary_min is not none %}
+        Rs. {{ "{:,.0f}".format(salary_min) }}+
+      {% elif salary_max is not none %}
+        Up to Rs. {{ "{:,.0f}".format(salary_max) }}
+      {% endif %}
+      <small>/month</small>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if requirements %}
+  <hr>
+  <div class="section">
+    <h2>Requirements</h2>
+    <ul class="requirements">
+      {% for req in requirements %}
+      <li>{{ req }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if benefits %}
+  <hr>
+  <div class="section">
+    <h2>Benefits</h2>
+    <div class="benefits">
+      {% for b in benefits %}<li>{{ b }}</li>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <hr>
+  <div class="section">
+    <h2>Contact</h2>
+    <div class="contact">
+      {% if contact_email %}
+      <p>📧 <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+      {% endif %}
+      {% if contact_phone %}
+      <p>📞 <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a></p>
+      {% endif %}
+      {% if not contact_email and not contact_phone %}
+      <p class="na">Not specified</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="footer">
+    Vacancy #{{ vacancy_id }} &middot; {{ created_at }}
+  </div>
+</div>
+</body>
+</html>
