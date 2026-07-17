@@ -48,6 +48,11 @@
     "max_size_mb": 100,
     "backup_count": 5
   },
+  "scheduler": {
+    "enabled": true,
+    "time": "09:00",
+    "timezone": "Asia/Kathmandu"
+  },
   "storage": {
     "type": "local",
     "path": "data/"
