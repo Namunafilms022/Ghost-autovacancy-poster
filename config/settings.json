@@ -56,5 +56,19 @@
   "storage": {
     "type": "local",
     "path": "data/"
+  },
+  "poster_contact": {
+    "replace_enabled": true,
+    "replace_phone": "9841002002",
+    "replace_email": "agent@mydomain.com"
+  },
+  "telegram_bot": {
+    "token": ""
+  },
+  "whatsapp_bot": {
+    "enabled": true,
+    "session_path": "./whatsapp_session",
+    "webhook_port": 5001,
+    "monitored_groups": []
   }
 }
