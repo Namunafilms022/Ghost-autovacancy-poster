@@ -590,4 +590,4 @@ For questions, issues, or suggestions:
 
 ---
 
-**Made with ❤️ for automation enthusiasts and recruitment teams.**
+**Made by Echosage 💀u
