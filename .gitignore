@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+ghost_vacancies.db
+data/company_cache/
+data/worker_state.json
+data/validation_results.json
+output/
+queue/
+*.log
+.DS_Store
