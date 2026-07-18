@@ -187,6 +187,64 @@ Next project:
 
 ---
 
+## Screenshots
+
+Add screenshots to help new users and contributors quickly see the dashboard and generated posters. Below are recommended filenames, alt text, and placement instructions — I can add the image files for you if you upload them or confirm I should use the images you attached in this conversation.
+
+Recommended location in the repository:
+
+- docs/screenshots/
+
+Recommended filenames (you uploaded four images; please confirm or provide different names):
+
+- docs/screenshots/1_poster_full_mobile.png  — Poster full view (mobile)
+- docs/screenshots/2_poster_card_mobile.png  — Poster card view (mobile)
+- docs/screenshots/3_terminal_output.png     — Test & terminal output (CI / pytest)
+- docs/screenshots/4_dashboard_duplicate.png — Dashboard view (duplicate flagged)
+
+To embed screenshots in the README use the following markdown (example):
+
+```markdown
+## Screenshots
+
+Poster (full view)
+
+![Poster - full view](docs/screenshots/1_poster_full_mobile.png)
+
+Poster (card)
+
+![Poster - card](docs/screenshots/2_poster_card_mobile.png)
+
+Test output / terminal
+
+![Terminal tests](docs/screenshots/3_terminal_output.png)
+
+Dashboard (duplicate detection)
+
+![Dashboard duplicate](docs/screenshots/4_dashboard_duplicate.png)
+```
+
+If you'd like smaller thumbnails with captions, you can use HTML in the README for finer control. Example:
+
+```html
+<p align="center">
+  <img src="docs/screenshots/1_poster_full_mobile.png" width="360" alt="Poster full view" />
+  <img src="docs/screenshots/2_poster_card_mobile.png" width="240" alt="Poster card" />
+</p>
+```
+
+How I can proceed for you (choose one):
+
+1. I will add the screenshots you attached here into `docs/screenshots/` and commit them, then embed them in the README exactly as shown above. (I'll need your confirmation — and permission to read and add the images attached in this conversation.)
+
+2. I will only update the README to include the screenshot section and instructions (already done). You will add the image files yourself by committing them to `docs/screenshots/` using the recommended filenames and markdown.
+
+3. I will create a pull request that adds both images and the README update if you provide the image files (upload or paste), and you prefer a PR flow.
+
+Tell me which option you want. If you choose option 1 or 3, please confirm and I'll add the images now (I will use the four images you attached in this chat as the source). If you prefer to upload different image files, provide them or tell me the filenames to use.
+
+---
+
 Version: v1.0.0-beta
 
 Production-ready pipeline for autonomous vacancy processing.
