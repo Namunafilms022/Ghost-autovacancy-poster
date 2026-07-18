@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Queue — Publish Manager</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0b1120;color:#e2e8f0;min-height:100vh}
+.header{background:#0f172a;border-bottom:1px solid #1e293b;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 span{color:#8b5cf6}
+.header .sub{color:#64748b;font-size:0.85rem}
+.nav-links{display:flex;gap:16px}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:0.9rem;padding:6px 12px;border-radius:6px;transition:all .2s}
+.nav-links a:hover{color:#e2e8f0;background:#1e293b}
+.nav-links a.active{color:#8b5cf6;background:#1e1a3b}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding:20px 32px;background:#0f172a;border-bottom:1px solid #1e293b}
+.stat{background:#1e293b;border-radius:8px;padding:12px 16px;border:1px solid #1e293b;text-align:center;cursor:pointer;transition:border-color .2s}
+.stat:hover{border-color:#475569}
+.stat.active{border-color:#8b5cf6;background:#1e1a3b}
+.stat .val{font-size:1.3rem;font-weight:700;line-height:1.3}
+.stat .val.green{color:#22c55e}
+.stat .val.yellow{color:#eab308}
+.stat .val.red{color:#ef4444}
+.stat .val.purple{color:#a78bfa}
+.stat .val.blue{color:#60a5fa}
+.stat .val.orange{color:#f97316}
+.stat .lbl{font-size:0.72rem;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
+.actions-bar{display:flex;gap:10px;padding:16px 32px;align-items:center;flex-wrap:wrap}
+.actions-bar button{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 16px;color:#e2e8f0;font-size:0.85rem;cursor:pointer;transition:all .2s}
+.actions-bar button:hover{background:#334155}
+.actions-bar button.danger{color:#fca5a5;border-color:#7f1d1d}
+.actions-bar button.danger:hover{background:#7f1d1d}
+.main{padding:20px 32px;max-width:1400px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}
+.card{background:#1e293b;border-radius:12px;border:1px solid #334155;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:#475569}
+.card-body{padding:16px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.card-id{font-size:0.75rem;color:#64748b;font-weight:600}
+.card-status{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:0.72rem;font-weight:600}
+.card-status.queued{background:#1e3a5f;color:#60a5fa}
+.card-status.publishing{background:#3b0764;color:#c4b5fd}
+.card-status.published{background:#166534;color:#22c55e}
+.card-status.failed{background:#7f1d1d;color:#fca5a5}
+.card-status.partially_published{background:#713f12;color:#eab308}
+.card-status.draft{background:#1e293b;color:#94a3b8}
+.card-vacancy{font-size:0.95rem;font-weight:600;margin-bottom:4px}
+.card-company{font-size:0.82rem;color:#94a3b8;margin-bottom:10px}
+.card-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:0.78rem;color:#64748b;margin-bottom:10px}
+.card-meta span{display:flex;align-items:center;gap:4px}
+.platform-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.platform-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:500}
+.platform-tag.published{background:#166534;color:#22c55e}
+.platform-tag.failed{background:#7f1d1d;color:#fca5a5}
+.platform-tag.queued{background:#1e3a5f;color:#60a5fa}
+.platform-tag.publishing{background:#3b0764;color:#c4b5fd}
+.card-actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #1e293b}
+.card-actions button{background:transparent;border:1px solid #334155;border-radius:6px;padding:5px 12px;color:#94a3b8;font-size:0.78rem;cursor:pointer;transition:all .2s}
+.card-actions button:hover{background:#334155;color:#e2e8f0}
+.card-actions button.publish{color:#8b5cf6;border-color:#8b5cf6}
+.card-actions button.publish:hover{background:#5b21b6;color:#fff}
+.card-actions button.retry{color:#22c55e;border-color:#166534}
+.card-actions button.retry:hover{background:#166534;color:#22c55e}
+.card-actions button.delete{color:#fca5a5;border-color:#7f1d1d}
+.card-actions button.delete:hover{background:#7f1d1d;color:#fca5a5}
+.error-msg{background:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:8px;font-size:0.78rem;margin-bottom:10px}
+.empty{text-align:center;padding:60px 20px;color:#64748b}
+.empty h3{font-size:1.1rem;margin-bottom:8px;color:#94a3b8}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;animation:fadeIn .3s;max-width:400px}
+.toast.success{border-color:#22c55e;color:#22c55e}
+.toast.error{border-color:#ef4444;color:#fca5a5}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.worker-bar{display:flex;align-items:center;gap:12px;padding:10px 32px;background:#0f172a;border-bottom:1px solid #1e293b;font-size:0.85rem}
+.worker-bar .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.worker-bar .dot.green{background:#22c55e;box-shadow:0 0 8px #22c55e}
+.worker-bar .dot.gray{background:#64748b}
+.worker-bar button{background:transparent;border:1px solid #334155;border-radius:6px;padding:4px 12px;color:#94a3b8;font-size:0.78rem;cursor:pointer;transition:all .2s}
+.worker-bar button:hover{background:#334155;color:#e2e8f0}
+.worker-bar button.start{color:#22c55e;border-color:#166534}
+.worker-bar button.start:hover{background:#166534;color:#22c55e}
+.worker-bar button.stop{color:#fca5a5;border-color:#7f1d1d}
+.worker-bar button.stop:hover{background:#7f1d1d;color:#fca5a5}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>👻 Queue <span>Manager</span></h1>
+    <div class="sub">Publish queue — monitor, retry, and manage</div>
+  </div>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/social">Social</a>
+    <a href="/automation">Auto</a>
+    <a href="/analytics">Analytics</a>
+    <a href="/queue" class="active">Queue</a>
+    <a href="/validator/">Validator</a>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="actions-bar">
+  <button onclick="publishAll()" style="color:#8b5cf6;border-color:#8b5cf6">🚀 Publish All Pending</button>
+  <button onclick="retryAll()">🔄 Retry All Failed</button>
+  <button onclick="loadQueue()">🔄 Refresh</button>
+</div>
+
+<div class="worker-bar" id="workerBar">
+  <span class="dot gray" id="workerDot"></span>
+  <span id="workerLabel">Worker stopped</span>
+  <button class="start" id="workerStartBtn" onclick="startWorker()">▶ Start</button>
+  <button class="stop" id="workerStopBtn" onclick="stopWorker()" style="display:none">⏹ Stop</button>
+</div>
+
+<div class="main">
+  <div class="grid" id="queueGrid"></div>
+</div>
+
+<script>
+let currentFilter = '';
+
+function createStat(key, label, value, color) {
+  const div = document.createElement('div');
+  div.className = 'stat' + (currentFilter === key ? ' active' : '');
+  div.innerHTML = `<div class="val ${color}">${value}</div><div class="lbl">${label}</div>`;
+  if (key) {
+    div.onclick = () => { currentFilter = currentFilter === key ? '' : key; loadQueue(); };
+  }
+  return div;
+}
+
+function statsHTML(stats) {
+  const bar = document.getElementById('statsBar');
+  bar.innerHTML = '';
+  bar.appendChild(createStat('', 'Total', stats.total, 'blue'));
+  bar.appendChild(createStat('queued', 'Queued', stats.queued, 'blue'));
+  bar.appendChild(createStat('publishing', 'Publishing', stats.publishing, 'purple'));
+  bar.appendChild(createStat('published', 'Published', stats.published, 'green'));
+  bar.appendChild(createStat('failed', 'Failed', stats.failed, 'red'));
+  bar.appendChild(createStat('partially_published', 'Partial', stats.partially_published, 'yellow'));
+  if (stats.avg_publish_time) {
+    bar.appendChild(createStat('', 'Avg Time', (stats.avg_publish_time / 60).toFixed(1) + 'm', 'orange'));
+  }
+}
+
+function platformBadge(name, state) {
+  const s = state?.status || 'queued';
+  return `<span class="platform-tag ${s}">${icons[name.toLowerCase()] || '🌐'} ${name}${s === 'failed' && state?.error ? ' ⚠️' : ''}</span>`;
+}
+
+const icons = {
+  facebook: '📘', instagram: '📸', linkedin: '💼',
+  telegram: '✈️', twitter: '🐦', x: '🐦',
+  tiktok: '🎵', youtube: '▶️',
+};
+
+function formatTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+
+function loadQueue() {
+  const url = '/api/queue' + (currentFilter ? '?status=' + currentFilter : '');
+  fetch(url).then(r => r.json()).then(data => {
+    statsHTML(data.stats);
+    const grid = document.getElementById('queueGrid');
+    grid.innerHTML = '';
+    if (!data.items.length) {
+      grid.innerHTML = '<div class="empty"><h3>No queue items</h3><p>Vacancies will appear here after pipeline processing.</p></div>';
+      return;
+    }
+    data.items.forEach(q => {
+      const states = q.platform_states || {};
+      const platforms = q.platforms || Object.keys(states);
+      const hasError = q.error_message;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-id">#${q.vacancy_id} · ${formatTime(q.created_at)}</span>
+            <span class="card-status ${q.status}">${q.status.replace('_',' ')}</span>
+          </div>
+          <div class="platform-list">${platforms.map(p => platformBadge(p, states[p])).join('')}</div>
+          ${hasError ? `<div class="error-msg">${q.error_message}</div>` : ''}
+          <div class="card-meta">
+            <span>🔄 Retry ${q.retry_count}/${q.max_retries}</span>
+            <span>📁 <a href="/editor/${q.vacancy_id}" style="color:#8b5cf6;text-decoration:none">View</a></span>
+            ${q.published_at ? '<span>✅ ' + formatTime(q.published_at) + '</span>' : ''}
+          </div>
+          <div class="card-actions">
+            ${q.status === 'queued' ? `<button class="publish" onclick="publishItem(${q.id})">🚀 Publish Now</button>` : ''}
+            ${q.status === 'failed' || q.status === 'partially_published' ? `<button class="retry" onclick="retryItem(${q.id})">🔄 Retry</button>` : ''}
+            <button class="delete" onclick="deleteItem(${q.id})">🗑️ Delete</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  });
+}
+
+function publishItem(id) {
+  fetch('/api/queue/' + id + '/publish', {method:'POST'})
+    .then(r => r.json()).then(d => {
+      showToast(d.success ? 'Published successfully' : 'Publish failed: ' + (d.error || 'check results'), d.success ? 'success' : 'error');
+      loadQueue();
+    });
+}
+
+function publishAll() {
+  fetch('/api/queue/publish-pending', {method:'POST'})
+    .then(r => r.json()).then(d => {
+      showToast('Published ' + d.published + '/' + d.total + ' items', d.published > 0 ? 'success' : 'error');
+      loadQueue();
+    });
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function retryItem(id) {
+  fetch('/api/queue/' + id + '/retry', {method:'POST'})
+    .then(r => r.json()).then(d => { if(d.success) loadQueue(); });
+}
+
+function retryAll() {
+  fetch('/api/queue/retry-all', {method:'POST'})
+    .then(r => r.json()).then(d => { if(d.success) loadQueue(); });
+}
+
+function deleteItem(id) {
+  if (!confirm('Delete this queue item?')) return;
+  fetch('/api/queue/' + id, {method:'DELETE'})
+    .then(r => r.json()).then(d => { if(d.success) loadQueue(); });
+}
+
+function loadWorkerStatus() {
+  fetch('/api/worker/status').then(r => r.json()).then(s => {
+    const dot = document.getElementById('workerDot');
+    const label = document.getElementById('workerLabel');
+    const startBtn = document.getElementById('workerStartBtn');
+    const stopBtn = document.getElementById('workerStopBtn');
+    if (s.running) {
+      dot.className = 'dot green';
+      label.textContent = `Worker running · Poll: ${s.poll_interval}s · Processed: ${s.processed} · Failed: ${s.failed}`;
+      startBtn.style.display = 'none';
+      stopBtn.style.display = '';
+    } else {
+      dot.className = 'dot gray';
+      label.textContent = 'Worker stopped';
+      startBtn.style.display = '';
+      stopBtn.style.display = 'none';
+    }
+  });
+}
+
+function startWorker() {
+  fetch('/api/worker/start', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{"poll_interval":30}'})
+    .then(r => r.json()).then(d => { if(d.success) loadWorkerStatus(); });
+}
+
+function stopWorker() {
+  fetch('/api/worker/stop', {method:'POST'}).then(r => r.json()).then(d => { if(d.success) loadWorkerStatus(); });
+}
+
+loadQueue();
+loadWorkerStatus();
+setInterval(loadQueue, 15000);
+setInterval(loadWorkerStatus, 5000);
+</script>
+</body>
+</html>

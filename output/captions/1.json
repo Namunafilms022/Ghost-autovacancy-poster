@@ -1,0 +1,42 @@
+{
+  "vacancy_id": 1,
+  "title": "Software Engineer at Google",
+  "company": "",
+  "platforms": {
+    "facebook": {
+      "caption": "We're hiring a Software Engineer at Google at !",
+      "hashtags": "#hiring #job #career #techjobs #softwareengineer",
+      "call_to_action": "Tag someone who would be perfect for this role!",
+      "short_version": "Hiring Software Engineer at Google at !",
+      "long_version": "We're hiring a Software Engineer at Google at !\n\nJoin our team and take the next step in your career!"
+    },
+    "instagram": {
+      "caption": "🚀 WE'RE HIRING! 🚀\n\nSoftware Engineer at Google\n📍 ",
+      "hashtags": "#hiring #jobsearch #careergoals #dreamjob #jobopportunity",
+      "call_to_action": "Swipe up to apply! ✨",
+      "short_version": "🚀 WE'RE HIRING!\nSoftware Engineer at Google\n\n",
+      "long_version": "🚀 WE'RE HIRING! 🚀\n\nSoftware Engineer at Google\n📍 \n\nDon't miss this opportunity to join an amazing team! 🙌"
+    },
+    "linkedin": {
+      "caption": "I'm excited to announce that we are looking for a Software Engineer at Google to join !\n\n\nIf you or someone in your network is interested, please reach out. Let's grow together!",
+      "hashtags": "#hiring #job #career #techjobs #softwareengineer",
+      "call_to_action": "Apply now or share with your network.",
+      "short_version": "We're hiring a Software Engineer at Google at ! ",
+      "long_version": "I'm thrilled to share that  is hiring a Software Engineer at Google!\n\nAbout the role:\n\nAt , we value growth, collaboration, and excellence. This is an excellent opportunity for someone looking to make a meaningful impact.\n\nI'd appreciate it if you could share this with your network or tag someone who might be a great fit."
+    },
+    "telegram": {
+      "caption": "📢 JOB ALERT\n\nSoftware Engineer at Google\n🏢 \n",
+      "hashtags": "#hiring #job #techjobs #softwareengineer",
+      "call_to_action": "Send your CV to the contact above.",
+      "short_version": "📢 JOB: Software Engineer at Google at ",
+      "long_version": "📢 JOB ALERT\n\nPosition: Software Engineer at Google\nCompany: \n\nContact us for more details!"
+    },
+    "twitter": {
+      "caption": "We're hiring! Software Engineer at Google at ",
+      "hashtags": "#hiring #job #techjobs #softwareengineer",
+      "call_to_action": "Apply now!",
+      "short_version": "Hiring: Software Engineer at Google @ ",
+      "long_version": "We're hiring a Software Engineer at Google at !\n"
+    }
+  }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Analytics — Publishing Insights</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0b1120;color:#e2e8f0;min-height:100vh}
+.header{background:#0f172a;border-bottom:1px solid #1e293b;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 span{color:#8b5cf6}
+.header .sub{color:#64748b;font-size:0.85rem}
+.nav-links{display:flex;gap:16px}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:0.9rem;padding:6px 12px;border-radius:6px;transition:all .2s}
+.nav-links a:hover{color:#e2e8f0;background:#1e293b}
+.nav-links a.active{color:#8b5cf6;background:#1e1a3b}
+.main{padding:24px 32px;max-width:1100px;margin:0 auto}
+.period-bar{display:flex;gap:8px;margin-bottom:20px;align-items:center}
+.period-bar label{color:#64748b;font-size:0.85rem}
+.period-bar select{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:6px 12px;color:#e2e8f0;font-size:0.85rem}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px;text-align:center}
+.stat-card .value{font-size:1.8rem;font-weight:700;color:#e2e8f0}
+.stat-card .label{font-size:0.78rem;color:#64748b;margin-top:4px}
+.stat-card .value.green{color:#22c55e}
+.stat-card .value.red{color:#ef4444}
+.stat-card .value.purple{color:#a78bfa}
+.stat-card .value.amber{color:#f59e0b}
+.section{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:18px;margin-bottom:16px}
+.section h2{font-size:1rem;margin-bottom:12px;color:#94a3b8}
+.platform-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #1e293b;font-size:0.85rem}
+.platform-row:last-child{border-bottom:none}
+.platform-row .name{width:100px;font-weight:600}
+.platform-row .bar-wrap{flex:1;height:20px;background:#0f172a;border-radius:999px;overflow:hidden;display:flex}
+.platform-row .bar-wrap .bar{height:100%;transition:width .5s}
+.platform-row .bar-wrap .bar.green{background:#22c55e}
+.platform-row .bar-wrap .bar.red{background:#ef4444}
+.platform-row .count{width:80px;text-align:right;color:#64748b;font-size:0.78rem}
+.daily-bar{display:flex;align-items:flex-end;gap:2px;height:120px;overflow-x:auto;padding:4px 0}
+.daily-bar .col{flex-shrink:0;width:24px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.daily-bar .col .segment{width:100%;border-radius:2px;min-height:2px;cursor:pointer}
+.daily-bar .col .segment.green{background:#22c55e}
+.daily-bar .col .segment.red{background:#ef4444}
+.daily-bar .col .day-label{font-size:0.6rem;color:#64748b;transform:rotate(-45deg);white-space:nowrap;margin-top:4px}
+.activity-list{max-height:300px;overflow-y:auto}
+.activity-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #0f172a;font-size:0.82rem}
+.activity-item .status-badge{font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600}
+.activity-item .status-badge.published{background:#064e3b;color:#6ee7b7}
+.activity-item .status-badge.failed{background:#7f1d1d;color:#fca5a5}
+.activity-item .time{color:#64748b;font-size:0.75rem;margin-left:auto}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📊 Analytics <span>Insights</span></h1>
+    <div class="sub">Publishing performance and platform health</div>
+  </div>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/social">Social</a>
+    <a href="/automation">Auto</a>
+    <a href="/analytics" class="active">Analytics</a>
+    <a href="/queue">Queue</a>
+    <a href="/validator/">Validator</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="period-bar">
+    <label>Period:</label>
+    <select id="periodSelect" onchange="loadData()">
+      <option value="7">Last 7 days</option>
+      <option value="30" selected>Last 30 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="365">All time</option>
+    </select>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="section">
+    <h2>📈 Platform Performance</h2>
+    <div id="platformBreakdown"></div>
+  </div>
+
+  <div class="section">
+    <h2>📅 Daily Trend</h2>
+    <div class="daily-bar" id="dailyTrend"></div>
+  </div>
+
+  <div class="section">
+    <h2>🕐 Recent Activity</h2>
+    <div class="activity-list" id="recentActivity"></div>
+  </div>
+</div>
+
+<script>
+function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
+
+function loadData() {
+  const days = document.getElementById('periodSelect').value;
+  showToast('Loading analytics...');
+
+  fetch('/api/analytics/overview?days=' + days).then(r => r.json()).then(data => {
+    const o = data.overview;
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="value green">${o.total_published}</div><div class="label">Published</div></div>
+      <div class="stat-card"><div class="value red">${o.total_failed}</div><div class="label">Failed</div></div>
+      <div class="stat-card"><div class="value purple">${o.success_rate}%</div><div class="label">Success Rate</div></div>
+      <div class="stat-card"><div class="value amber">${o.avg_duration_ms}ms</div><div class="label">Avg Duration</div></div>
+      <div class="stat-card"><div class="value">${o.unique_vacancies_posted}</div><div class="label">Vacancies</div></div>
+      <div class="stat-card"><div class="value">${o.total_publish_attempts}</div><div class="label">Total Attempts</div></div>
+    `;
+
+    const pb = document.getElementById('platformBreakdown');
+    const platforms = o.platform_breakdown || {};
+    pb.innerHTML = Object.entries(platforms).length ? Object.entries(platforms).map(([name, p]) => {
+      const total = p.total || 1;
+      const pubPct = (p.published / total * 100).toFixed(0);
+      const failPct = (p.failed / total * 100).toFixed(0);
+      return `
+        <div class="platform-row">
+          <div class="name">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
+          <div class="bar-wrap">
+            <div class="bar green" style="width:${pubPct}%"></div>
+            <div class="bar red" style="width:${failPct}%"></div>
+          </div>
+          <div class="count">${p.published} ✅ / ${p.failed} ❌</div>
+        </div>`;
+    }).join('') : '<div style="color:#64748b;padding:12px;text-align:center">No data yet</div>';
+
+    const dt = document.getElementById('dailyTrend');
+    const trend = o.daily_trend || {};
+    const entries = Object.entries(trend);
+    const maxVal = Math.max(...entries.map(([, d]) => d.total), 1);
+    dt.innerHTML = entries.length ? entries.map(([day, d]) => {
+      const pubH = (d.published / maxVal * 100).toFixed(0);
+      const failH = (d.failed / maxVal * 100).toFixed(0);
+      return `
+        <div class="col">
+          <div class="segment green" style="height:${pubH}%" title="${day}: ${d.published} published"></div>
+          <div class="segment red" style="height:${failH}%" title="${day}: ${d.failed} failed"></div>
+          <div class="day-label">${day.slice(-2)}</div>
+        </div>`;
+    }).join('') : '<div style="color:#64748b;padding:12px;text-align:center">No data yet</div>';
+
+    const ra = document.getElementById('recentActivity');
+    const recent = data.recent || [];
+    ra.innerHTML = recent.length ? recent.map(a => {
+      const statusClass = a.status === 'published' ? 'published' : 'failed';
+      const time = a.created_at ? new Date(a.created_at).toLocaleString() : '';
+      return `
+        <div class="activity-item">
+          <span class="status-badge ${statusClass}">${a.status}</span>
+          <span>V#${a.vacancy_id} → ${a.platform}</span>
+          ${a.error ? `<span style="color:#fca5a5;font-size:0.75rem">${a.error.substring(0, 40)}...</span>` : ''}
+          ${a.duration_ms ? `<span style="color:#64748b;font-size:0.75rem">${a.duration_ms}ms</span>` : ''}
+          <span class="time">${time}</span>
+        </div>`;
+    }).join('') : '<div style="color:#64748b;padding:12px;text-align:center">No recent activity</div>';
+  }).catch(e => showToast('Error loading analytics: ' + e.message));
+}
+
+loadData();
+</script>
+</body>
+</html>

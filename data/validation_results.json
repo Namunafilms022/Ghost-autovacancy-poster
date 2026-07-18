@@ -1,0 +1,324 @@
+[
+  {
+    "vacancy_id": 1,
+    "overall_confidence": 0.87,
+    "overall_level": "good",
+    "threshold": 0.7,
+    "rejected": false,
+    "rejection_reason": null,
+    "fields": {
+      "company": {
+        "value": "Tech Corp Inc.",
+        "confidence": 1.0,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "position": {
+        "value": "Senior Python Developer",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "salary": {
+        "value": "120000 - 180000",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "location": {
+        "value": "San Francisco, CA",
+        "confidence": 0.9,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "requirements": {
+        "value": "5 items",
+        "confidence": 0.85,
+        "level": "good",
+        "issues": [],
+        "details": "Python | Django | AWS | Docker | PostgreSQL"
+      },
+      "benefits": {
+        "value": "3 items",
+        "confidence": 0.85,
+        "level": "good",
+        "issues": [],
+        "details": "Health Insurance | 401k | Remote Work"
+      },
+      "deadline": {
+        "value": null,
+        "confidence": 0.2,
+        "level": "poor",
+        "issues": [
+          "No deadline mentioned"
+        ],
+        "details": null
+      },
+      "contact": {
+        "value": "hr@techcorp.com, +1-555-123-4567",
+        "confidence": 1.0,
+        "level": "excellent",
+        "issues": [],
+        "details": "hr@techcorp.com, +1-555-123-4567"
+      },
+      "email": {
+        "value": "hr@techcorp.com",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "phone": {
+        "value": "+1-555-123-4567",
+        "confidence": 0.9,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "website": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      }
+    },
+    "missing_fields": [
+      "website"
+    ],
+    "low_confidence_fields": [
+      "deadline",
+      "website"
+    ]
+  },
+  {
+    "vacancy_id": 2,
+    "overall_confidence": 0.21,
+    "overall_level": "poor",
+    "threshold": 0.7,
+    "rejected": true,
+    "rejection_reason": "Overall confidence 0.21 < threshold 0.7. Issues: missing: location, requirements, email, phone, website; low confidence: company, salary, location, requirements, benefits, deadline, contact, email, phone, website",
+    "fields": {
+      "company": {
+        "value": "X",
+        "confidence": 0.2,
+        "level": "poor",
+        "issues": [
+          "Company name is too short"
+        ],
+        "details": null
+      },
+      "position": {
+        "value": "Worker",
+        "confidence": 0.6,
+        "level": "fair",
+        "issues": [],
+        "details": null
+      },
+      "salary": {
+        "value": "hiring",
+        "confidence": 0.3,
+        "level": "poor",
+        "issues": [
+          "Could not parse numeric salary"
+        ],
+        "details": null
+      },
+      "location": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      },
+      "requirements": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      },
+      "benefits": {
+        "value": null,
+        "confidence": 0.3,
+        "level": "poor",
+        "issues": [
+          "No benefits listed"
+        ],
+        "details": "Not mentioned"
+      },
+      "deadline": {
+        "value": null,
+        "confidence": 0.2,
+        "level": "poor",
+        "issues": [
+          "No deadline mentioned"
+        ],
+        "details": null
+      },
+      "contact": {
+        "value": null,
+        "confidence": 0.2,
+        "level": "poor",
+        "issues": [
+          "No contact section found"
+        ],
+        "details": null
+      },
+      "email": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      },
+      "phone": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      },
+      "website": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      }
+    },
+    "missing_fields": [
+      "location",
+      "requirements",
+      "email",
+      "phone",
+      "website"
+    ],
+    "low_confidence_fields": [
+      "company",
+      "salary",
+      "location",
+      "requirements",
+      "benefits",
+      "deadline",
+      "contact",
+      "email",
+      "phone",
+      "website"
+    ]
+  },
+  {
+    "vacancy_id": 3,
+    "overall_confidence": 0.81,
+    "overall_level": "good",
+    "threshold": 0.7,
+    "rejected": false,
+    "rejection_reason": null,
+    "fields": {
+      "company": {
+        "value": "Startup Inc.",
+        "confidence": 1.0,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "position": {
+        "value": "Junior React Developer",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "salary": {
+        "value": "60000 - 90000",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "location": {
+        "value": "Remote",
+        "confidence": 0.85,
+        "level": "good",
+        "issues": [],
+        "details": null
+      },
+      "requirements": {
+        "value": "3 items",
+        "confidence": 0.6,
+        "level": "fair",
+        "issues": [],
+        "details": "React | JavaScript | CSS"
+      },
+      "benefits": {
+        "value": "1 items",
+        "confidence": 0.6,
+        "level": "fair",
+        "issues": [],
+        "details": "Stock options"
+      },
+      "deadline": {
+        "value": null,
+        "confidence": 0.2,
+        "level": "poor",
+        "issues": [
+          "No deadline mentioned"
+        ],
+        "details": null
+      },
+      "contact": {
+        "value": "at jobs@startup.io",
+        "confidence": 0.85,
+        "level": "good",
+        "issues": [],
+        "details": "at jobs@startup.io"
+      },
+      "email": {
+        "value": "jobs@startup.io",
+        "confidence": 0.95,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "phone": {
+        "value": "+977-9851001001",
+        "confidence": 0.9,
+        "level": "excellent",
+        "issues": [],
+        "details": null
+      },
+      "website": {
+        "value": null,
+        "confidence": 0.0,
+        "level": "missing",
+        "issues": [
+          "Field is missing"
+        ],
+        "details": null
+      }
+    },
+    "missing_fields": [
+      "website"
+    ],
+    "low_confidence_fields": [
+      "deadline",
+      "website"
+    ]
+  }
+]

@@ -1,0 +1,41 @@
+name: Phase 0 Database Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run Phase 0 database tests
+      run: |
+        pytest tests/test_database.py -v --tb=short
+    
+    - name: Test summary
+      if: always()
+      run: |
+        echo "Phase 0 tests completed"
+        pytest tests/test_database.py -v --tb=line 2>&1 | tail -20 || true

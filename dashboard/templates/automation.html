@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Automation — Rules Engine</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0b1120;color:#e2e8f0;min-height:100vh}
+.header{background:#0f172a;border-bottom:1px solid #1e293b;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 span{color:#8b5cf6}
+.header .sub{color:#64748b;font-size:0.85rem}
+.nav-links{display:flex;gap:16px}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:0.9rem;padding:6px 12px;border-radius:6px;transition:all .2s}
+.nav-links a:hover{color:#e2e8f0;background:#1e293b}
+.nav-links a.active{color:#8b5cf6;background:#1e1a3b}
+.main{padding:24px 32px;max-width:1000px;margin:0 auto}
+.actions-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.actions-bar button{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 18px;color:#e2e8f0;font-size:0.85rem;cursor:pointer;transition:all .2s}
+.actions-bar button:hover{background:#334155}
+.actions-bar button.primary{color:#8b5cf6;border-color:#8b5cf6}
+.actions-bar button.primary:hover{background:#5b21b6;color:#fff}
+.rule-card{background:#1e293b;border-radius:12px;border:1px solid #334155;padding:18px;margin-bottom:12px;transition:border-color .2s}
+.rule-card:hover{border-color:#475569}
+.rule-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.rule-name{font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:8px}
+.rule-name .toggle{width:36px;height:20px;border-radius:999px;border:1px solid #334155;cursor:pointer;position:relative;transition:all .2s;background:transparent}
+.rule-name .toggle.on{background:#166534;border-color:#22c55e}
+.rule-name .toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#64748b;transition:all .2s}
+.rule-name .toggle.on::after{left:18px;background:#22c55e}
+.rule-trigger{font-size:0.78rem;padding:3px 10px;border-radius:999px;font-weight:600}
+.rule-trigger.immediate{background:#1e3a5f;color:#60a5fa}
+.rule-trigger.scheduled{background:#3b0764;color:#c4b5fd}
+.rule-details{font-size:0.82rem;color:#94a3b8;margin-bottom:8px;line-height:1.6}
+.rule-details span{display:inline-block;margin-right:16px}
+.rule-actions{display:flex;gap:8px;padding-top:10px;border-top:1px solid #1e293b}
+.rule-actions button{background:transparent;border:1px solid #334155;border-radius:6px;padding:4px 12px;color:#94a3b8;font-size:0.78rem;cursor:pointer;transition:all .2s}
+.rule-actions button:hover{background:#334155;color:#e2e8f0}
+.rule-actions button.danger:hover{color:#fca5a5;background:#7f1d1d}
+.empty{text-align:center;padding:60px 20px;color:#64748b}
+.empty h3{font-size:1.1rem;margin-bottom:8px;color:#94a3b8}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#1e293b;border-radius:12px;border:1px solid #334155;width:90%;max-width:520px;padding:24px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;margin-bottom:16px}
+.modal label{display:block;font-size:0.82rem;color:#94a3b8;margin-bottom:4px;margin-top:12px}
+.modal label:first-child{margin-top:0}
+.modal input,.modal select{width:100%;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px 12px;color:#e2e8f0;font-size:0.9rem;outline:none}
+.modal input:focus,.modal select:focus{border-color:#8b5cf6}
+.modal .row{display:flex;gap:10px}
+.modal .row > *{flex:1}
+.modal .checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.modal .checkbox-group label{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#94a3b8;cursor:pointer;margin:0}
+.modal .checkbox-group input[type=checkbox]{width:auto}
+.modal .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal .modal-actions button{padding:8px 20px;border-radius:6px;font-size:0.85rem;cursor:pointer;transition:all .2s;border:1px solid #334155;background:transparent;color:#94a3b8}
+.modal .modal-actions button:hover{background:#334155;color:#e2e8f0}
+.modal .modal-actions button.primary{background:#5b21b6;border-color:#8b5cf6;color:#fff}
+.modal .modal-actions button.primary:hover{background:#6d28d9}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;animation:fadeIn .3s;max-width:400px}
+.toast.success{border-color:#22c55e;color:#22c55e}
+.toast.error{border-color:#ef4444;color:#fca5a5}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>⚡ Automation <span>Rules</span></h1>
+    <div class="sub">Control when and how vacancies are published automatically</div>
+  </div>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/social">Social</a>
+    <a href="/automation" class="active">Auto</a>
+    <a href="/analytics">Analytics</a>
+    <a href="/queue">Queue</a>
+    <a href="/validator/">Validator</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="actions-bar">
+    <button class="primary" onclick="openModal()">+ New Rule</button>
+    <button onclick="loadRules()">🔄 Refresh</button>
+  </div>
+  <div id="rulesList"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">New Automation Rule</h2>
+    <input type="hidden" id="m-edit-id">
+    <label>Rule Name</label>
+    <input id="m-name" placeholder="e.g. Auto-publish tech jobs">
+    <label>Trigger</label>
+    <select id="m-trigger" onchange="toggleSchedule()">
+      <option value="immediate">Immediate — publish as soon as queued</option>
+      <option value="scheduled">Scheduled — publish at specific time</option>
+    </select>
+    <div id="scheduleFields" style="display:none">
+      <div class="row">
+        <div><label>Time (HH:MM)</label><input id="m-time" placeholder="10:00"></div>
+        <div><label>Days</label>
+          <div class="checkbox-group" id="m-days">
+            <label><input type="checkbox" value="0"> Sun</label>
+            <label><input type="checkbox" value="1"> Mon</label>
+            <label><input type="checkbox" value="2"> Tue</label>
+            <label><input type="checkbox" value="3"> Wed</label>
+            <label><input type="checkbox" value="4"> Thu</label>
+            <label><input type="checkbox" value="5"> Fri</label>
+            <label><input type="checkbox" value="6"> Sat</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <label>Target Platforms (leave empty for all)</label>
+    <div class="checkbox-group" id="m-platforms">
+      <label><input type="checkbox" value="facebook"> Facebook</label>
+      <label><input type="checkbox" value="linkedin"> LinkedIn</label>
+      <label><input type="checkbox" value="instagram"> Instagram</label>
+      <label><input type="checkbox" value="twitter"> Twitter</label>
+      <label><input type="checkbox" value="telegram"> Telegram</label>
+    </div>
+    <label>Conditions (optional)</label>
+    <div class="row">
+      <div><label>Min Salary</label><input id="m-min-sal" type="number" placeholder="e.g. 50000"></div>
+      <div><label>Max Salary</label><input id="m-max-sal" type="number" placeholder="e.g. 200000"></div>
+    </div>
+    <label>Min Confidence</label>
+    <input id="m-min-conf" type="number" min="0" max="1" step="0.1" placeholder="e.g. 0.7">
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="saveRule()">Save Rule</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLATFORM_ICONS = {facebook:'📘', linkedin:'💼', instagram:'📸', twitter:'🐦', telegram:'✈️'};
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function showToast(msg, type) {
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+
+function toggleSchedule() {
+  document.getElementById('scheduleFields').style.display =
+    document.getElementById('m-trigger').value === 'scheduled' ? '' : 'none';
+}
+
+function openModal(rule) {
+  document.getElementById('modalTitle').textContent = rule ? 'Edit Rule' : 'New Automation Rule';
+  document.getElementById('m-edit-id').value = rule ? rule.id : '';
+  document.getElementById('m-name').value = rule ? rule.name : '';
+  document.getElementById('m-trigger').value = rule ? rule.trigger : 'immediate';
+  document.getElementById('m-time').value = rule ? (rule.schedule_time || '') : '';
+  document.getElementById('m-min-sal').value = rule ? (rule.conditions?.min_salary || '') : '';
+  document.getElementById('m-max-sal').value = rule ? (rule.conditions?.max_salary || '') : '';
+  document.getElementById('m-min-conf').value = rule ? (rule.conditions?.min_confidence || '') : '';
+  document.querySelectorAll('#m-days input').forEach(cb => cb.checked = rule && rule.schedule_days?.includes(parseInt(cb.value)));
+  document.querySelectorAll('#m-platforms input').forEach(cb => cb.checked = rule && (!rule.platforms || rule.platforms.length === 0 || rule.platforms.includes(cb.value)));
+  toggleSchedule();
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function collectForm() {
+  const platforms = [];
+  document.querySelectorAll('#m-platforms input:checked').forEach(cb => platforms.push(cb.value));
+  const days = [];
+  document.querySelectorAll('#m-days input:checked').forEach(cb => days.push(parseInt(cb.value)));
+  const conditions = {};
+  const minSal = document.getElementById('m-min-sal').value;
+  const maxSal = document.getElementById('m-max-sal').value;
+  const minConf = document.getElementById('m-min-conf').value;
+  if (minSal) conditions.min_salary = parseFloat(minSal);
+  if (maxSal) conditions.max_salary = parseFloat(maxSal);
+  if (minConf) conditions.min_confidence = parseFloat(minConf);
+  return {
+    name: document.getElementById('m-name').value.trim(),
+    trigger: document.getElementById('m-trigger').value,
+    schedule_time: document.getElementById('m-time').value.trim() || null,
+    schedule_days: days,
+    platforms: platforms.length === 5 ? [] : platforms,
+    conditions: conditions,
+  };
+}
+
+function saveRule() {
+  const data = collectForm();
+  if (!data.name) { showToast('Rule name required', 'error'); return; }
+  const editId = document.getElementById('m-edit-id').value;
+  const url = editId ? '/api/automation/rules/' + editId : '/api/automation/rules';
+  const method = editId ? 'PUT' : 'POST';
+  fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)})
+    .then(r => r.json()).then(d => {
+      if (d.success || d.id) { showToast(editId ? 'Rule updated' : 'Rule created', 'success'); closeModal(); loadRules(); }
+      else { showToast(d.error || 'Failed', 'error'); }
+    });
+}
+
+function deleteRule(id) {
+  if (!confirm('Delete this automation rule?')) return;
+  fetch('/api/automation/rules/' + id, {method:'DELETE'}).then(r => r.json()).then(d => {
+    if (d.success) { showToast('Rule deleted', 'success'); loadRules(); }
+  });
+}
+
+function toggleRule(id, active) {
+  fetch('/api/automation/rules/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({is_active: active})})
+    .then(r => r.json()).then(d => { if(d.success) loadRules(); });
+}
+
+function loadRules() {
+  fetch('/api/automation/rules').then(r => r.json()).then(rules => {
+    const list = document.getElementById('rulesList');
+    list.innerHTML = '';
+    if (!rules.length) {
+      list.innerHTML = '<div class="empty"><h3>No automation rules</h3><p>Create rules to auto-publish vacancies based on conditions and schedules.</p></div>';
+      return;
+    }
+    rules.forEach(r => {
+      const conds = r.conditions || {};
+      const condParts = [];
+      if (conds.min_salary) condParts.push('💰 ≥' + conds.min_salary.toLocaleString());
+      if (conds.max_salary) condParts.push('💰 ≤' + conds.max_salary.toLocaleString());
+      if (conds.min_confidence) condParts.push('✓ ≥' + (conds.min_confidence * 100) + '%');
+      const platforms = (!r.platforms || !r.platforms.length) ? 'All platforms' : r.platforms.map(p => (PLATFORM_ICONS[p] || '') + ' ' + p).join(', ');
+      const days = (!r.schedule_days || !r.schedule_days.length) ? '' : ' · ' + r.schedule_days.map(d => DAY_NAMES[d]).join(', ');
+      const sched = r.schedule_time ? ' at ' + r.schedule_time : '';
+      const div = document.createElement('div');
+      div.className = 'rule-card';
+      div.innerHTML = `
+        <div class="rule-head">
+          <div class="rule-name">
+            <div class="toggle ${r.is_active ? 'on' : ''}" onclick="toggleRule(${r.id}, ${!r.is_active})"></div>
+            ${r.name}
+          </div>
+          <span class="rule-trigger ${r.trigger}">${r.trigger}</span>
+        </div>
+        <div class="rule-details">
+          <span>🎯 ${platforms}</span>
+          ${r.trigger === 'scheduled' ? '<span>⏰ ' + sched + days + '</span>' : ''}
+          ${condParts.length ? '<span>🔍 ' + condParts.join(' · ') + '</span>' : ''}
+        </div>
+        <div class="rule-actions">
+          <button onclick='openModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>✏️ Edit</button>
+          <button class="danger" onclick="deleteRule(${r.id})">🗑️ Delete</button>
+        </div>`;
+      list.appendChild(div);
+    });
+  });
+}
+
+loadRules();
+</script>
+</body>
+</html>

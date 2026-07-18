@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "Ghost-autovacancy-poster",
+    "version": "0.1.0",
+    "phase": "0",
+    "environment": "development",
+    "debug": true,
+    "log_level": "INFO"
+  },
+  "database": {
+    "type": "sqlite",
+    "path": "./ghost_vacancies.db",
+    "echo": false
+  },
+  "reader": {
+    "enabled": true,
+    "timeout": 30,
+    "max_retries": 3
+  },
+  "parser": {
+    "enabled": true,
+    "confidence_threshold": 0.7
+  },
+  "validator": {
+    "enabled": true,
+    "confidence_threshold": 0.7,
+    "field_weights": {
+      "company": 1.5,
+      "position": 1.5,
+      "salary": 1.0,
+      "location": 1.0,
+      "requirements": 0.8,
+      "benefits": 0.5,
+      "deadline": 0.5,
+      "contact": 0.7,
+      "email": 0.7,
+      "phone": 0.5,
+      "website": 0.3
+    }
+  },
+  "normalizer": {
+    "enabled": true,
+    "standardize_fields": true,
+    "trim_whitespace": true
+  },
+  "duplicate": {
+    "enabled": true,
+    "similarity_threshold": 0.85,
+    "algorithm": "basic"
+  },
+  "poster": {
+    "enabled": true,
+    "template_dir": "poster/templates",
+    "output_format": "html",
+    "theme": "dark_neon",
+    "auto_theme": false
+  },
+  "poster_contact": {
+    "replace_enabled": true,
+    "replace_phone": "9851001001",
+    "replace_email": "ghost@jobposter.com"
+  },
+  "publisher": {
+    "enabled": true,
+    "platforms": ["facebook"],
+    "max_retries": 3,
+    "retry_delay_seconds": 2
+  },
+  "facebook": {
+    "access_token": "",
+    "group_ids": [],
+    "api_version": "v18.0"
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "text",
+    "file": "logs/app.log",
+    "max_size_mb": 100,
+    "backup_count": 5
+  },
+  "storage": {
+    "type": "local",
+    "path": "data/"
+  }
+}

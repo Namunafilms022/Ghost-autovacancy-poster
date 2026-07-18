@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poster Editor — #{{ vacancy.id }}</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;background:#0b1120;color:#e2e8f0;height:100vh;display:flex;flex-direction:column}
+.topbar{background:#0f172a;border-bottom:1px solid #1e293b;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar h1{font-size:1.1rem;display:flex;align-items:center;gap:8px}
+.topbar h1 span{color:#8b5cf6}
+.topbar .back{color:#94a3b8;text-decoration:none;font-size:0.85rem;display:flex;align-items:center;gap:4px}
+.topbar .back:hover{color:#e2e8f0}
+.editor-wrap{display:flex;flex:1;overflow:hidden}
+.panel{width:380px;min-width:380px;background:#0f172a;border-right:1px solid #1e293b;overflow-y:auto;padding:16px 20px;flex-shrink:0}
+.panel h2{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;margin:16px 0 8px}
+.panel h2:first-child{margin-top:0}
+.panel label{display:block;font-size:0.78rem;color:#94a3b8;margin-bottom:3px;margin-top:8px}
+.panel label:first-of-type{margin-top:0}
+.form-row{display:flex;gap:8px}
+.form-row > *{flex:1}
+.panel input,.panel select,.panel textarea{width:100%;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:7px 10px;color:#e2e8f0;font-size:0.85rem;outline:none;transition:border-color .15s}
+.panel input:focus,.panel select:focus,.panel textarea:focus{border-color:#8b5cf6}
+.panel input[type=color]{height:36px;padding:3px;cursor:pointer}
+.panel textarea{resize:vertical;min-height:50px;font-family:monospace;font-size:0.8rem}
+.panel .checkbox-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.panel .checkbox-row input[type=checkbox]{width:auto}
+.panel .checkbox-row label{margin:0;cursor:pointer}
+.preview-wrap{flex:1;display:flex;flex-direction:column;background:#0b1120}
+.preview-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#0f172a;border-bottom:1px solid #1e293b;flex-shrink:0;flex-wrap:wrap;gap:8px}
+.preview-toolbar .zoom{display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#94a3b8}
+.preview-toolbar .zoom input{width:100px}
+.export-group{display:flex;gap:6px}
+.export-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:6px;padding:6px 14px;font-size:0.78rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.export-btn:hover{background:#334155;color:#e2e8f0}
+.export-btn.primary{border-color:#8b5cf6;color:#c4b5fd}
+.export-btn.primary:hover{background:#5b21b6;color:#fff}
+.export-btn.green{border-color:#22c55e;color:#22c55e}
+.export-btn.green:hover{background:#166534;color:#fff}
+.preview-frame-wrap{flex:1;overflow:auto;display:flex;justify-content:center;padding:20px}
+.preview-frame-wrap iframe{background:#fff;border-radius:12px;border:1px solid #1e293b;box-shadow:0 8px 40px rgba(0,0,0,0.5);transition:all .2s;max-width:100%}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:#22c55e;color:#22c55e}
+.toast.error{border-color:#ef4444;color:#fca5a5}
+.status-msg{padding:8px 14px;border-radius:6px;font-size:0.8rem;margin-top:8px;display:none}
+.cap-card{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;margin-bottom:10px}
+.cap-card h3{font-size:0.85rem;display:flex;align-items:center;gap:6px;margin-bottom:6px;color:#e2e8f0}
+.cap-card .cap-label{font-size:0.7rem;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-top:8px;margin-bottom:2px}
+.cap-card .cap-text{font-size:0.82rem;color:#cbd5e1;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:#0f172a;padding:8px 10px;border-radius:4px}
+.cap-card .cap-copy{float:right;background:0 0;border:1px solid #334155;color:#94a3b8;border-radius:4px;padding:2px 8px;font-size:0.7rem;cursor:pointer}
+.cap-card .cap-copy:hover{background:#334155;color:#e2e8f0}
+.status-msg.info{display:block;background:#1e3a5f;color:#93c5fd;border:1px solid #1e40af}
+.status-msg.error{display:block;background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+@media(max-width:900px){.editor-wrap{flex-direction:column}.panel{width:100%;min-width:0;max-height:40vh;border-right:none;border-bottom:1px solid #1e293b}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <a class="back" href="/">← Dashboard</a>
+    <h1><span>🎨</span> Poster Editor — #{{ vacancy.id }} {{ vacancy.title }}</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="statusBadge" style="font-size:0.78rem;color:#64748b">Ready</span>
+    <button class="export-btn" id="tabStyle" onclick="switchTab('style')" style="border-color:#8b5cf6;color:#c4b5fd">🎨 Style</button>
+    <button class="export-btn" id="tabCaptions" onclick="switchTab('captions')">💬 Captions</button>
+    <button class="export-btn primary" onclick="saveToDb()">💾 Save</button>
+  </div>
+</div>
+
+<div class="editor-wrap">
+  <div class="panel" id="stylePanel">
+    <h2>Marketplace</h2>
+    <label>Template Preset</label>
+    <select id="f-template" onchange="applyTemplate()">
+      <option value="">— Custom —</option>
+    </select>
+    <div id="templateDesc" style="font-size:0.72rem;color:#64748b;margin-top:4px;min-height:1.2em"></div>
+
+    <h2>Content</h2>
+    <label>Title</label>
+    <input id="f-title" value="{{ vacancy.title }}" oninput="schedulePreview()">
+    <label>Company</label>
+    <input id="f-company" value="{{ vacancy.company }}" oninput="schedulePreview()">
+    <div class="form-row">
+      <div><label>Salary Min</label><input id="f-salary-min" type="number" value="{{ vacancy.salary_min or '' }}" oninput="schedulePreview()"></div>
+      <div><label>Salary Max</label><input id="f-salary-max" type="number" value="{{ vacancy.salary_max or '' }}" oninput="schedulePreview()"></div>
+    </div>
+    <label>Location</label>
+    <input id="f-location" value="{{ vacancy.location or '' }}" oninput="schedulePreview()">
+    <div class="form-row">
+      <div><label>Job Type</label>
+        <select id="f-job-type" onchange="schedulePreview()">
+          <option value="">—</option>
+          <option value="full_time" {{ 'selected' if vacancy.job_type == 'full_time' }}>Full-time</option>
+          <option value="part_time" {{ 'selected' if vacancy.job_type == 'part_time' }}>Part-time</option>
+          <option value="contract" {{ 'selected' if vacancy.job_type == 'contract' }}>Contract</option>
+          <option value="internship" {{ 'selected' if vacancy.job_type == 'internship' }}>Internship</option>
+          <option value="freelance" {{ 'selected' if vacancy.job_type == 'freelance' }}>Freelance</option>
+        </select>
+      </div>
+      <div><label>Experience</label>
+        <select id="f-exp" onchange="schedulePreview()">
+          <option value="">—</option>
+          <option value="entry" {{ 'selected' if vacancy.experience_level == 'entry' }}>Entry</option>
+          <option value="mid" {{ 'selected' if vacancy.experience_level == 'mid' }}>Mid</option>
+          <option value="senior" {{ 'selected' if vacancy.experience_level == 'senior' }}>Senior</option>
+          <option value="lead" {{ 'selected' if vacancy.experience_level == 'lead' }}>Lead</option>
+        </select>
+      </div>
+    </div>
+    <label>Requirements (one per line)</label>
+    <textarea id="f-reqs" oninput="schedulePreview()">{{ vacancy.requirements }}</textarea>
+    <label>Benefits (one per line)</label>
+    <textarea id="f-bens" oninput="schedulePreview()">{{ vacancy.benefits }}</textarea>
+
+    <h2>Style</h2>
+    <label>Theme</label>
+    <select id="f-theme" onchange="schedulePreview()">
+      {% for t in themes %}
+      <option value="{{ t }}" {{ 'selected' if t == vacancy.theme }}>{{ t|replace('_', ' ')|title }}</option>
+      {% endfor %}
+    </select>
+    <label>Background Category</label>
+    <select id="f-category" onchange="schedulePreview()">
+      {% for c in categories %}
+      <option value="{{ c }}">{{ c|title }}</option>
+      {% endfor %}
+    </select>
+    <label>Font Family</label>
+    <select id="f-font" onchange="schedulePreview()">
+      {% for f in font_families %}
+      <option value="{{ f }}">{{ f }}</option>
+      {% endfor %}
+    </select>
+    <div class="form-row">
+      <div><label>Accent Color</label><input id="f-accent" type="color" value="#8b5cf6" oninput="schedulePreview()"></div>
+      <div><label>Bg Color</label><input id="f-bg" type="color" value="#0f172a" oninput="schedulePreview()"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Text Color</label><input id="f-text" type="color" value="#e2e8f0" oninput="schedulePreview()"></div>
+      <div><label>Surface</label><input id="f-surface" type="color" value="#1e293b" oninput="schedulePreview()"></div>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="f-icons" checked onchange="schedulePreview()">
+      <label for="f-icons">Show decorative icons</label>
+    </div>
+    <div id="statusMsg" class="status-msg"></div>
+  </div>
+
+  <div class="panel" id="captionsPanel" style="display:none">
+    <h2>Captions</h2>
+    <p style="font-size:0.78rem;color:#64748b;margin-bottom:12px">
+      Platform-specific captions generated from vacancy data.
+    </p>
+    <div id="captionsContent">
+      <div style="text-align:center;padding:20px;color:#475569">
+        Click "Generate Captions" to preview.
+      </div>
+    </div>
+    <button class="export-btn primary" style="margin-top:12px;width:100%;justify-content:center" onclick="generateCaptions()">
+      ✨ Generate Captions
+    </button>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="preview-toolbar">
+      <div class="zoom">
+        <span>🔍</span>
+        <input id="zoomRange" type="range" min="30" max="100" value="65" oninput="updateZoom()">
+        <span id="zoomLabel">65%</span>
+      </div>
+      <div class="export-group">
+        <button class="export-btn green" onclick="exportImage('png')">📷 PNG</button>
+        <button class="export-btn green" onclick="exportImage('jpeg')">📷 JPEG</button>
+        <button class="export-btn primary" onclick="exportPDF()">📄 PDF</button>
+      </div>
+    </div>
+    <div class="preview-frame-wrap" id="previewWrap">
+      <iframe id="previewFrame" srcdoc="{{ vacancy.poster_html|e }}"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+let previewTimer = null;
+let isUpdating = false;
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function getFormData() {
+  return {
+    title: document.getElementById('f-title').value,
+    company: document.getElementById('f-company').value,
+    location: document.getElementById('f-location').value,
+    salary_min: parseFloat(document.getElementById('f-salary-min').value) || null,
+    salary_max: parseFloat(document.getElementById('f-salary-max').value) || null,
+    job_type: document.getElementById('f-job-type').value,
+    experience_level: document.getElementById('f-exp').value,
+    requirements: document.getElementById('f-reqs').value,
+    benefits: document.getElementById('f-bens').value,
+    theme: document.getElementById('f-theme').value,
+    category: document.getElementById('f-category').value,
+  };
+}
+
+function schedulePreview() {
+  if (previewTimer) clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 300);
+}
+
+async function updatePreview() {
+  if (isUpdating) return;
+  isUpdating = true;
+  const badge = document.getElementById('statusBadge');
+  const msg = document.getElementById('statusMsg');
+  badge.textContent = 'Rendering...';
+  msg.className = 'status-msg';
+  msg.style.display = 'none';
+
+  try {
+    const data = getFormData();
+    const res = await fetch('/api/vacancy/{{ vacancy.id }}/editor-render', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok || !result.success) throw new Error(result.error || 'Render failed');
+
+    const iframe = document.getElementById('previewFrame');
+    iframe.srcdoc = result.poster_html;
+    badge.textContent = 'Ready ✓';
+  } catch (e) {
+    badge.textContent = 'Error ✗';
+    msg.textContent = 'Render error: ' + e.message;
+    msg.className = 'status-msg error';
+    msg.style.display = 'block';
+    toast(e.message, 'error');
+  }
+  isUpdating = false;
+}
+
+function updateZoom() {
+  const val = document.getElementById('zoomRange').value;
+  document.getElementById('zoomLabel').textContent = val + '%';
+  const wrap = document.getElementById('previewWrap');
+  const iframe = wrap.querySelector('iframe');
+  const scale = val / 100;
+  iframe.style.transform = 'scale(' + scale + ')';
+  iframe.style.transformOrigin = 'top center';
+  const baseWidth = 720;
+  iframe.style.width = baseWidth + 'px';
+  iframe.style.height = (baseWidth * 1.4) + 'px';
+}
+
+async function exportImage(format) {
+  toast('Capturing poster...', 'success');
+  const iframe = document.getElementById('previewFrame');
+  try {
+    const canvas = await html2canvas(iframe.contentDocument.body, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+    const link = document.createElement('a');
+    if (format === 'jpeg') {
+      link.download = 'poster-{{ vacancy.id }}.jpg';
+      link.href = canvas.toDataURL('image/jpeg', 0.92);
+    } else {
+      link.download = 'poster-{{ vacancy.id }}.png';
+      link.href = canvas.toDataURL('image/png');
+    }
+    link.click();
+    toast('Exported as ' + format.toUpperCase(), 'success');
+  } catch (e) {
+    toast('Export failed: ' + e.message, 'error');
+  }
+}
+
+async function exportPDF() {
+  toast('Generating PDF...', 'success');
+  const iframe = document.getElementById('previewFrame');
+  try {
+    const canvas = await html2canvas(iframe.contentDocument.body, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('poster-{{ vacancy.id }}.pdf');
+    toast('Exported as PDF', 'success');
+  } catch (e) {
+    toast('PDF export failed: ' + e.message, 'error');
+  }
+}
+
+async function saveToDb() {
+  toast('Saving changes...', 'success');
+  try {
+    const data = getFormData();
+    const fields = ['title', 'company', 'location', 'job_type', 'experience_level'];
+    const payload = {};
+    fields.forEach(f => { if (data[f]) payload[f] = data[f]; });
+    payload.salary_min = data.salary_min;
+    payload.salary_max = data.salary_max;
+
+    const res = await fetch('/api/vacancy/{{ vacancy.id }}/edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+    if (!res.ok || !result.success) throw new Error(result.error || 'Save failed');
+
+    const regenRes = await fetch('/api/vacancy/{{ vacancy.id }}/regenerate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ theme: data.theme }),
+    });
+    const regenResult = await regenRes.json();
+    if (!regenRes.ok || !regenResult.success) throw new Error(regenResult.error || 'Regen failed');
+
+    toast('Saved! Poster regenerated.', 'success');
+  } catch (e) {
+    toast('Save failed: ' + e.message, 'error');
+  }
+}
+
+let templates = [];
+
+async function loadTemplates() {
+  try {
+    const res = await fetch('/api/templates');
+    const data = await res.json();
+    templates = data;
+    const sel = document.getElementById('f-template');
+    data.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.name;
+      opt.textContent = t.label;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Failed to load templates:', e);
+  }
+}
+
+function applyTemplate() {
+  const name = document.getElementById('f-template').value;
+  const desc = document.getElementById('templateDesc');
+  if (!name) { desc.textContent = ''; return; }
+  const t = templates.find(x => x.name === name);
+  if (!t) return;
+  desc.textContent = t.description;
+  document.getElementById('f-theme').value = t.theme;
+  document.getElementById('f-category').value = t.category;
+  document.getElementById('f-font').value = t.font;
+  document.getElementById('f-accent').value = t.accent;
+  document.getElementById('f-bg').value = t.bg;
+  document.getElementById('f-text').value = t.text_color;
+  document.getElementById('f-surface').value = t.surface;
+  document.getElementById('f-icons').checked = t.show_icons;
+  schedulePreview();
+  document.getElementById('f-template').value = t.name;
+}
+
+function switchTab(tab) {
+  const stylePanel = document.getElementById('stylePanel');
+  const captionsPanel = document.getElementById('captionsPanel');
+  const tabStyle = document.getElementById('tabStyle');
+  const tabCap = document.getElementById('tabCaptions');
+  if (tab === 'style') {
+    stylePanel.style.display = '';
+    captionsPanel.style.display = 'none';
+    tabStyle.style.borderColor = '#8b5cf6';
+    tabStyle.style.color = '#c4b5fd';
+    tabCap.style.borderColor = '#334155';
+    tabCap.style.color = '#94a3b8';
+  } else {
+    stylePanel.style.display = 'none';
+    captionsPanel.style.display = '';
+    tabCap.style.borderColor = '#8b5cf6';
+    tabCap.style.color = '#c4b5fd';
+    tabStyle.style.borderColor = '#334155';
+    tabStyle.style.color = '#94a3b8';
+    if (!document.getElementById('captionsContent').querySelector('.cap-card')) {
+      generateCaptions();
+    }
+  }
+}
+
+function capCopy(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+function renderCaption(platform, data) {
+  const icons = {facebook: '📘', instagram: '📸', linkedin: '💼', telegram: '✈️', twitter: '🐦'};
+  const names = {facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', telegram: 'Telegram', twitter: 'Twitter / X'};
+  const icon = icons[platform] || '🌐';
+  const name = names[platform] || platform;
+
+  const fields = [
+    {label: 'Caption', key: 'caption'},
+    {label: 'Short Version', key: 'short_version'},
+    {label: 'Long Version', key: 'long_version'},
+    {label: 'Hashtags', key: 'hashtags'},
+    {label: 'Call to Action', key: 'call_to_action'},
+  ];
+
+  let html = `<div class="cap-card">
+    <h3>${icon} ${name}</h3>`;
+  fields.forEach(f => {
+    if (data[f.key]) {
+      const display = data[f.key];
+      html += `<div class="cap-label">${f.label}</div>
+        <div class="cap-text">${display}</div>`;
+    }
+  });
+  html += `<div style="margin-top:8px">
+    <button class="cap-copy" onclick="capCopy(this.parentElement.parentElement.querySelector('.cap-text').textContent, this)">Copy</button>
+    <button class="cap-copy" onclick="capCopy(\`${data.full_text.replace(/`/g, '\\`')}\`, this)" style="margin-right:4px">Copy All</button>
+  </div></div>`;
+  return html;
+}
+
+async function generateCaptions() {
+  const container = document.getElementById('captionsContent');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:#475569">Generating...</div>';
+  try {
+    const data = getFormData();
+    const res = await fetch('/api/vacancy/{{ vacancy.id }}/captions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed');
+
+    let html = '';
+    const platforms = ['facebook', 'instagram', 'linkedin', 'telegram', 'twitter'];
+    platforms.forEach(p => {
+      if (result[p]) html += renderCaption(p, result[p]);
+    });
+    container.innerHTML = html || '<div style="text-align:center;padding:20px;color:#475569">No captions generated.</div>';
+    toast('Captions generated!', 'success');
+  } catch (e) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444">Error: ' + e.message + '</div>';
+    toast(e.message, 'error');
+  }
+}
+
+loadTemplates();
+updateZoom();
+</script>
+</body>
+</html>

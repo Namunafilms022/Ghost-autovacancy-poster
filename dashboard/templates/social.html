@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Social — Connected Accounts</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0b1120;color:#e2e8f0;min-height:100vh}
+.header{background:#0f172a;border-bottom:1px solid #1e293b;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 span{color:#8b5cf6}
+.header .sub{color:#64748b;font-size:0.85rem}
+.nav-links{display:flex;gap:16px}
+.nav-links a{color:#94a3b8;text-decoration:none;font-size:0.9rem;padding:6px 12px;border-radius:6px;transition:all .2s}
+.nav-links a:hover{color:#e2e8f0;background:#1e293b}
+.nav-links a.active{color:#8b5cf6;background:#1e1a3b}
+.main{padding:24px 32px;max-width:1200px;margin:0 auto}
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px}
+.platform-card{background:#1e293b;border-radius:12px;border:1px solid #334155;padding:20px;transition:border-color .2s}
+.platform-card:hover{border-color:#475569}
+.platform-card .head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.platform-card .head .icon{font-size:1.8rem}
+.platform-card .head .info h3{font-size:1rem;font-weight:600}
+.platform-card .head .info .sub{font-size:0.8rem;color:#64748b}
+.platform-card .actions{display:flex;gap:8px;flex-wrap:wrap}
+.platform-card .actions button{background:transparent;border:1px solid #334155;border-radius:6px;padding:6px 14px;color:#94a3b8;font-size:0.8rem;cursor:pointer;transition:all .2s}
+.platform-card .actions button:hover{background:#334155;color:#e2e8f0}
+.platform-card .actions button.primary{color:#8b5cf6;border-color:#8b5cf6}
+.platform-card .actions button.primary:hover{background:#5b21b6;color:#fff}
+.account-list{margin-top:16px}
+.account-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0f172a;border-radius:8px;margin-bottom:8px;gap:10px}
+.account-item .info{flex:1;min-width:0}
+.account-item .name{font-weight:500;font-size:0.9rem}
+.account-item .meta{font-size:0.75rem;color:#64748b;margin-top:2px}
+.account-item .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.account-item .status-dot.active{background:#22c55e}
+.account-item .status-dot.inactive{background:#64748b}
+.account-item .ac-actions{display:flex;gap:6px;flex-shrink:0}
+.account-item .ac-actions button{background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:0.8rem;padding:4px 8px;border-radius:4px;transition:all .2s}
+.account-item .ac-actions button:hover{background:#334155;color:#e2e8f0}
+.account-item .ac-actions button.danger:hover{color:#fca5a5;background:#7f1d1d}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#1e293b;border-radius:12px;border:1px solid #334155;width:90%;max-width:480px;padding:24px}
+.modal h2{font-size:1.1rem;margin-bottom:16px}
+.modal label{display:block;font-size:0.82rem;color:#94a3b8;margin-bottom:4px;margin-top:12px}
+.modal label:first-child{margin-top:0}
+.modal input, .modal select{width:100%;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px 12px;color:#e2e8f0;font-size:0.9rem;outline:none}
+.modal input:focus,.modal select:focus{border-color:#8b5cf6}
+.modal .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal .modal-actions button{padding:8px 20px;border-radius:6px;font-size:0.85rem;cursor:pointer;transition:all .2s;border:1px solid #334155;background:transparent;color:#94a3b8}
+.modal .modal-actions button:hover{background:#334155;color:#e2e8f0}
+.modal .modal-actions button.primary{background:#5b21b6;border-color:#8b5cf6;color:#fff}
+.modal .modal-actions button.primary:hover{background:#6d28d9}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;animation:fadeIn .3s;max-width:400px}
+.toast.success{border-color:#22c55e;color:#22c55e}
+.toast.error{border-color:#ef4444;color:#fca5a5}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.empty{text-align:center;padding:30px;color:#64748b;font-size:0.9rem}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🔗 Social <span>Accounts</span></h1>
+    <div class="sub">Connect your social media platforms for publishing</div>
+  </div>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/social" class="active">Social</a>
+    <a href="/automation">Auto</a>
+    <a href="/analytics">Analytics</a>
+    <a href="/queue">Queue</a>
+    <a href="/validator/">Validator</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="platform-grid" id="platformGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Account</h2>
+    <input type="hidden" id="m-platform">
+    <input type="hidden" id="m-edit-id">
+    <label>Account Name</label>
+    <input id="m-name" placeholder="My Facebook Page">
+    <label>Account / Page ID</label>
+    <input id="m-account-id" placeholder="Page ID (optional)">
+    <label>Access Token</label>
+    <input id="m-token" placeholder="Paste your access token" type="password">
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="saveAccount()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editingAccount = null;
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function openModal(platform, account) {
+  editingAccount = account || null;
+  document.getElementById('modalTitle').textContent = account ? 'Edit Account' : 'Add ' + platform.charAt(0).toUpperCase() + platform.slice(1) + ' Account';
+  document.getElementById('m-platform').value = platform;
+  document.getElementById('m-name').value = account ? account.account_name : '';
+  document.getElementById('m-account-id').value = account ? (account.account_id || '') : '';
+  document.getElementById('m-token').value = '';
+  document.getElementById('m-edit-id').value = account ? account.id : '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveAccount() {
+  const platform = document.getElementById('m-platform').value;
+  const name = document.getElementById('m-name').value.trim();
+  const accountId = document.getElementById('m-account-id').value.trim();
+  const token = document.getElementById('m-token').value.trim();
+  const editId = document.getElementById('m-edit-id').value;
+
+  if (!name) { showToast('Account name is required', 'error'); return; }
+
+  const body = {
+    platform: platform,
+    account_name: name,
+    account_id: accountId || null,
+    access_token: token || null,
+  };
+
+  const url = editId ? ('/api/social/accounts/' + editId) : '/api/social/accounts';
+  const method = editId ? 'PUT' : 'POST';
+
+  fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+    .then(r => r.json())
+    .then(d => {
+      if (d.success || d.id) {
+        showToast(editId ? 'Account updated' : 'Account added', 'success');
+        closeModal();
+        loadAccounts();
+      } else {
+        showToast(d.error || 'Failed', 'error');
+      }
+    });
+}
+
+function deleteAccount(id) {
+  if (!confirm('Delete this account?')) return;
+  fetch('/api/social/accounts/' + id, {method:'DELETE'})
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) { showToast('Deleted', 'success'); loadAccounts(); }
+    });
+}
+
+function toggleAccount(id, active) {
+  fetch('/api/social/accounts/' + id, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({is_active: active})
+  }).then(r => r.json()).then(d => { if(d.success) loadAccounts(); });
+}
+
+const icons = {{ platform_icons|tojson }};
+const colors = {{ platform_colors|tojson }};
+const allPlatforms = {{ platforms|tojson }};
+
+function loadAccounts() {
+  fetch('/api/social/accounts').then(r => r.json()).then(accounts => {
+    const grid = document.getElementById('platformGrid');
+    grid.innerHTML = '';
+    allPlatforms.forEach(p => {
+      const pAccounts = accounts.filter(a => a.platform === p);
+      const card = document.createElement('div');
+      card.className = 'platform-card';
+      card.innerHTML = `
+        <div class="head">
+          <div class="icon">${icons[p] || '🌐'}</div>
+          <div class="info">
+            <h3>${p.charAt(0).toUpperCase() + p.slice(1)}</h3>
+            <div class="sub">${pAccounts.length} account(s) connected</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" onclick="openModal('${p}', null)">+ Add Account</button>
+        </div>
+        <div class="account-list">
+          ${pAccounts.length === 0 ? '<div class="empty">No accounts connected. Click "Add Account" to connect.</div>' : ''}
+          ${pAccounts.map(a => {
+            const active = a.is_active;
+            return `<div class="account-item">
+              <div class="status-dot ${active ? 'active' : 'inactive'}"></div>
+              <div class="info">
+                <div class="name">${a.account_name}</div>
+                <div class="meta">${a.account_id ? 'ID: ' + a.account_id : 'No page ID'} ${a.has_token ? '· Token set' : '· No token'}</div>
+              </div>
+              <div class="ac-actions">
+                <button onclick="openModal('${p}', ${JSON.stringify(a).replace(/"/g, '&quot;')})">✏️</button>
+                <button onclick="toggleAccount(${a.id}, ${!active})">${active ? '⏸️' : '▶️'}</button>
+                <button class="danger" onclick="deleteAccount(${a.id})">🗑️</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      grid.appendChild(card);
+    });
+  });
+}
+
+loadAccounts();
+</script>
+</body>
+</html>

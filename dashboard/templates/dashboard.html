@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Dashboard — Vacancy Manager</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0b1120;color:#e2e8f0;min-height:100vh}
+.header{background:#0f172a;border-bottom:1px solid #1e293b;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.4rem;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 span{color:#8b5cf6}
+.header .sub{color:#64748b;font-size:0.85rem}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.search-wrap{position:relative}
+.search-wrap input{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 14px 8px 36px;color:#e2e8f0;font-size:0.9rem;width:260px;outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:#8b5cf6}
+.search-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#64748b;font-size:0.85rem}
+.filter-select{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:0.9rem;outline:none;cursor:pointer}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:20px 32px;background:#0f172a;border-bottom:1px solid #1e293b}
+.stat{background:#1e293b;border-radius:8px;padding:14px 18px;border:1px solid #1e293b;text-align:center}
+.stat .val{font-size:1.5rem;font-weight:700;line-height:1.3}
+.stat .val.green{color:#22c55e}
+.stat .val.yellow{color:#eab308}
+.stat .val.red{color:#ef4444}
+.stat .val.purple{color:#a78bfa}
+.stat .val.blue{color:#60a5fa}
+.stat .lbl{font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}
+.main{padding:20px 32px;max-width:1600px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:16px}
+.card{background:#1e293b;border-radius:12px;border:1px solid #334155;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.card:hover{border-color:#475569;box-shadow:0 4px 24px rgba(0,0,0,0.3)}
+.card-top{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card-title{flex:1;min-width:0}
+.card-title h3{font-size:1rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-title .company{font-size:0.82rem;color:#94a3b8;margin-top:2px}
+.card-badges{display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;white-space:nowrap}
+.badge.status-ok{background:#166534;color:#22c55e}
+.badge.status-raw{background:#1e3a5f;color:#60a5fa}
+.badge.status-dup{background:#5b21b6;color:#c4b5fd}
+.badge.dup-high{background:#7f1d1d;color:#fca5a5}
+.badge.conf-excellent{background:#166534;color:#22c55e}
+.badge.conf-good{background:#713f12;color:#eab308}
+.badge.conf-fair{background:#7c2d12;color:#f97316}
+.badge.conf-poor{background:#7f1d1d;color:#ef4444}
+.badge.pub-published{background:#166534;color:#22c55e}
+.badge.pub-pending{background:#713f12;color:#eab308}
+.badge.pub-failed{background:#7f1d1d;color:#fca5a5}
+.badge.rejected{background:#7f1d1d;color:#fca5a5}
+.card-body{padding:0 18px 12px}
+.detail-row{display:flex;flex-wrap:wrap;gap:8px;font-size:0.8rem;color:#94a3b8;margin-bottom:8px}
+.detail-row span{display:inline-flex;align-items:center;gap:4px}
+.extraction-bar{margin-bottom:8px}
+.extraction-bar .head{display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:2px}
+.extraction-bar .head .lbl{color:#64748b}
+.extraction-bar .head .pct{font-weight:600}
+.extraction-bar .track{height:4px;background:#0f172a;border-radius:999px;overflow:hidden}
+.extraction-bar .fill{height:100%;border-radius:999px;transition:width .3s}
+.extraction-bar .fill.high{background:#22c55e}
+.extraction-bar .fill.mid{background:#eab308}
+.extraction-bar .fill.low{background:#ef4444}
+.dup-info{font-size:0.8rem;color:#c4b5fd;margin-bottom:6px;padding:6px 10px;background:#2e1065;border-radius:6px;display:flex;align-items:center;gap:6px}
+.dup-info .score{color:#eab308;font-weight:600}
+.poster-preview{position:relative;margin-bottom:8px}
+.poster-preview .toggle-poster{background:0 0;border:1px solid #334155;color:#94a3b8;border-radius:6px;padding:5px 12px;font-size:0.78rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.poster-preview .toggle-poster:hover{background:#334155;color:#e2e8f0}
+.poster-frame{display:none;margin-top:8px;border-radius:8px;overflow:hidden;border:1px solid #334155;max-height:320px;overflow-y:auto;background:#fff;transform:scale(0.5);transform-origin:top left;width:200%;height:auto;pointer-events:none}
+.poster-frame.open{display:block}
+.poster-frame iframe{width:100%;height:300px;border:none}
+.publish-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.publish-row .pub-item{font-size:0.75rem;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px}
+.time{font-size:0.72rem;color:#475569;margin-top:2px}
+.card-actions{display:flex;gap:6px;padding:10px 18px;background:#0f172a;border-top:1px solid #1e293b;flex-wrap:wrap}
+.btn{background:0 0;border:1px solid #334155;color:#94a3b8;border-radius:6px;padding:6px 14px;font-size:0.8rem;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{background:#334155;color:#e2e8f0}
+.btn-primary{border-color:#8b5cf6;color:#c4b5fd}
+.btn-primary:hover{background:#5b21b6;border-color:#8b5cf6;color:#fff}
+.btn-danger{border-color:#ef4444;color:#fca5a5}
+.btn-danger:hover{background:#7f1d1d;border-color:#ef4444;color:#fff}
+.btn-success{border-color:#22c55e;color:#22c55e}
+.btn-success:hover{background:#166534;border-color:#22c55e;color:#fff}
+.btn-warning{border-color:#eab308;color:#eab308}
+.btn-warning:hover{background:#713f12;border-color:#eab308;color:#fff}
+.empty{text-align:center;padding:60px 20px;color:#475569}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#1e293b;border-radius:12px;border:1px solid #334155;width:90%;max-width:600px;max-height:80vh;overflow-y:auto;padding:24px}
+.modal h2{font-size:1.2rem;margin-bottom:16px}
+.modal-close{float:right;background:0 0;border:none;color:#64748b;font-size:1.4rem;cursor:pointer}
+.modal-close:hover{color:#e2e8f0}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:0.82rem;color:#94a3b8;margin-bottom:4px}
+.form-group input,.form-group select{width:100%;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px 12px;color:#e2e8f0;font-size:0.9rem;outline:none}
+.form-group input:focus{border-color:#8b5cf6}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 20px;font-size:0.85rem;z-index:2000;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:#22c55e;color:#22c55e}
+.toast.error{border-color:#ef4444;color:#fca5a5}
+@media(max-width:768px){
+  .header{padding:16px}
+  .stats-bar{padding:12px 16px;grid-template-columns:repeat(3,1fr)}
+  .main{padding:12px 16px}
+  .grid{grid-template-columns:1fr}
+  .search-wrap input{width:180px}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1><span>👻</span> Ghost Dashboard</h1>
+    <div class="sub">Vacancy Manager — {{ stats.total }} vacancies</div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="/social" style="color:#94a3b8;text-decoration:none;font-size:0.85rem;padding:6px 12px;border:1px solid #334155;border-radius:8px;transition:all .2s" onmouseover="this.style.background='#1e293b';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#94a3b8'">🔗 Social</a>
+    <a href="/automation" style="color:#94a3b8;text-decoration:none;font-size:0.85rem;padding:6px 12px;border:1px solid #334155;border-radius:8px;transition:all .2s" onmouseover="this.style.background='#1e293b';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#94a3b8'">⚡ Auto</a>
+    <a href="/analytics" style="color:#94a3b8;text-decoration:none;font-size:0.85rem;padding:6px 12px;border:1px solid #334155;border-radius:8px;transition:all .2s" onmouseover="this.style.background='#1e293b';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#94a3b8'">📊 Analytics</a>
+    <a href="/queue" style="color:#94a3b8;text-decoration:none;font-size:0.85rem;padding:6px 12px;border:1px solid #334155;border-radius:8px;transition:all .2s" onmouseover="this.style.background='#1e293b';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#94a3b8'">📋 Queue</a>
+  </div>
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input id="search" type="text" placeholder="Search title, company..." oninput="filterCards()">
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="filterCards()">
+      <option value="all">All Status</option>
+      <option value="raw">Raw</option>
+      <option value="processed">Processed</option>
+      <option value="duplicate">Duplicate</option>
+    </select>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="val blue">{{ stats.total }}</div><div class="lbl">Total</div></div>
+  <div class="stat"><div class="val green">{{ stats.processed }}</div><div class="lbl">Processed</div></div>
+  <div class="stat"><div class="val yellow">{{ stats.raw }}</div><div class="lbl">Raw</div></div>
+  <div class="stat"><div class="val purple">{{ stats.duplicates }}</div><div class="lbl">Duplicates</div></div>
+  <div class="stat"><div class="val green">{{ stats.published }}</div><div class="lbl">Published</div></div>
+  <div class="stat"><div class="val blue">{{ stats.posters }}</div><div class="lbl">Posters</div></div>
+  <div class="stat">
+    <div class="val {{ 'green' if stats.avg_conf >= 0.7 else 'yellow' if stats.avg_conf >= 0.5 else 'red' }}">
+      {{ '%.0f'|format(stats.avg_conf * 100) if stats.avg_conf > 0 else '—' }}%
+    </div>
+    <div class="lbl">Avg Confidence</div>
+  </div>
+</div>
+
+<div class="main">
+{% if not cards %}
+<div class="empty">No vacancies yet. Run the pipeline first.</div>
+{% else %}
+<div class="grid" id="cardGrid">
+{% for c in cards %}
+<div class="card" data-id="{{ c.id }}" data-status="{{ c.status.label|lower }}" data-search="{{ (c.title+' '+c.company)|lower }}">
+  <div class="card-top">
+    <div class="card-title">
+      <h3>{{ c.title }}</h3>
+      <div class="company">{{ c.company }}</div>
+    </div>
+    <div class="card-badges">
+      <span class="badge {{ c.status.class }}">{{ c.status.icon }} {{ c.status.label }}</span>
+      {% if c.rejected %}
+      <span class="badge rejected">🚫 Rejected</span>
+      {% endif %}
+      {% if c.confidence is not none %}
+      <span class="badge conf-{{ 'excellent' if c.confidence >= 0.7 else 'good' if c.confidence >= 0.5 else 'fair' if c.confidence >= 0.3 else 'poor' }}">
+        {{ '%.0f'|format(c.confidence * 100) }}%
+      </span>
+      {% endif %}
+      {% if c.duplicate.is_duplicate %}
+      <span class="badge dup-high">♻️ Dup #{{ c.duplicate.matched_id }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="detail-row">
+      {% if c.location %}<span>📍 {{ c.location }}</span>{% endif %}
+      {% if c.salary_min is not none %}<span>💰 {{ '%.0f'|format(c.salary_min) }}{% if c.salary_max %} - {{ '%.0f'|format(c.salary_max) }}{% endif %}</span>{% endif %}
+      {% if c.job_type %}<span>💼 {{ c.job_type|replace('_', ' ')|title }}</span>{% endif %}
+      {% if c.experience_level %}<span>📊 {{ c.experience_level|replace('_', ' ')|title }}</span>{% endif %}
+      <span class="time">🕐 {{ (c.created_at or '')|replace('T', ' ')|truncate(16, true, '') }}</span>
+    </div>
+
+    {% if c.duplicate.is_duplicate and c.duplicate.matched_title %}
+    <div class="dup-info">
+      ♻️ Duplicate of <strong>#{{ c.duplicate.matched_id }}</strong> — {{ c.duplicate.matched_title }} @ {{ c.duplicate.matched_company }}
+    </div>
+    {% endif %}
+
+    {% if c.rejection_reason %}
+    <div class="dup-info" style="background:#7f1d1d;color:#fca5a5;border:none">
+      🚫 {{ c.rejection_reason }}
+    </div>
+    {% endif %}
+
+    {% if c.extraction_fields %}
+    <div class="extraction-bar">
+      {% for fname, fv in c.extraction_fields.items() %}
+      <div class="head">
+        <span class="lbl">{{ fname|replace('_', ' ')|title }}</span>
+        <span class="pct">{{ '%.0f'|format(fv.confidence * 100) }}%</span>
+      </div>
+      <div class="track">
+        <div class="fill {{ 'high' if fv.confidence >= 0.7 else 'mid' if fv.confidence >= 0.5 else 'low' }}" style="width:{{ fv.confidence * 100 }}%"></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if c.published %}
+    <div class="publish-row">
+      {% for p in c.published %}
+      <span class="pub-item badge pub-{{ p.status }}">
+        {{ '✅' if p.status == 'published' else '⏳' if p.status == 'pending' else '❌' }} {{ p.platform|capitalize }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if c.poster %}
+    <div class="poster-preview">
+      <button class="toggle-poster" onclick="togglePoster(this, {{ c.id }})">🖼️ Preview Poster</button>
+      <div class="poster-frame" id="poster-{{ c.id }}">
+        <iframe srcdoc="{{ c.poster.html|e }}" title="Poster Preview"></iframe>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card-actions">
+    <button class="btn btn-primary" onclick="editVacancy({{ c.id }})">✏️ Edit</button>
+    <button class="btn btn-success" onclick="regeneratePoster({{ c.id }})">🔄 Regenerate</button>
+    {% if not c.duplicate.is_duplicate %}
+    <button class="btn btn-warning" onclick="publishVacancy({{ c.id }})">📤 Publish</button>
+    {% endif %}
+    <button class="btn" onclick="checkDuplicate({{ c.id }})">🔍 Dup Check</button>
+    <button class="btn btn-danger" onclick="deleteVacancy({{ c.id }})">🗑️ Delete</button>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2>✏️ Edit Vacancy #<span id="editId"></span></h2>
+    <form id="editForm" onsubmit="saveEdit(event)">
+      <div class="form-group"><label>Title</label><input name="title" id="editTitle"></div>
+      <div class="form-group"><label>Company</label><input name="company" id="editCompany"></div>
+      <div class="form-group"><label>Location</label><input name="location" id="editLocation"></div>
+      <div class="form-group"><label>Salary Min</label><input name="salary_min" id="editSalaryMin" type="number"></div>
+      <div class="form-group"><label>Salary Max</label><input name="salary_max" id="editSalaryMax" type="number"></div>
+      <div class="form-group"><label>Job Type</label>
+        <select name="job_type" id="editJobType">
+          <option value="">—</option>
+          <option value="full_time">Full-time</option>
+          <option value="part_time">Part-time</option>
+          <option value="contract">Contract</option>
+          <option value="internship">Internship</option>
+          <option value="freelance">Freelance</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Experience Level</label>
+        <select name="experience_level" id="editExpLevel">
+          <option value="">—</option>
+          <option value="entry">Entry</option>
+          <option value="mid">Mid</option>
+          <option value="senior">Senior</option>
+          <option value="lead">Lead</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let editingId = null;
+
+function togglePoster(btn, id) {
+  const frame = document.getElementById('poster-' + id);
+  frame.classList.toggle('open');
+  btn.textContent = frame.classList.contains('open') ? '🖼️ Hide Poster' : '🖼️ Preview Poster';
+}
+
+function filterCards() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const sf = document.getElementById('statusFilter').value;
+  document.querySelectorAll('.card').forEach(el => {
+    const search = el.dataset.search;
+    const status = el.dataset.status;
+    const matchSearch = !q || search.includes(q);
+    const matchStatus = sf === 'all' || status === sf;
+    el.style.display = matchSearch && matchStatus ? '' : 'none';
+  });
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function api(url, method, body) {
+  try {
+    const res = await fetch(url, {
+      method: method || 'GET',
+      headers: {'Content-Type': 'application/json'},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  } catch (e) {
+    toast(e.message, 'error');
+    throw e;
+  }
+}
+
+async function editVacancy(id) {
+  editingId = id;
+  document.getElementById('editId').textContent = id;
+  try {
+    const data = await api('/api/vacancy/' + id);
+    document.getElementById('editTitle').value = data.title || '';
+    document.getElementById('editCompany').value = data.company || '';
+    document.getElementById('editLocation').value = data.location || '';
+    document.getElementById('editSalaryMin').value = data.salary_min || '';
+    document.getElementById('editSalaryMax').value = data.salary_max || '';
+    document.getElementById('editJobType').value = data.job_type || '';
+    document.getElementById('editExpLevel').value = data.experience_level || '';
+  } catch (e) { return; }
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveEdit(e) {
+  e.preventDefault();
+  if (!editingId) return;
+  const f = document.getElementById('editForm');
+  const data = {};
+  ['title','company','location','salary_min','salary_max','job_type','experience_level'].forEach(n => {
+    const v = f.querySelector('[name="' + n + '"]').value;
+    if (v) data[n] = isNaN(v) ? v : parseFloat(v);
+  });
+  try {
+    await api('/api/vacancy/' + editingId + '/edit', 'POST', data);
+    toast('Saved! Refreshing...', 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {}
+}
+
+async function regeneratePoster(id) {
+  if (!confirm('Regenerate poster for #' + id + '?')) return;
+  try {
+    await api('/api/vacancy/' + id + '/regenerate', 'POST');
+    toast('Poster regenerated! Refreshing...', 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {}
+}
+
+async function publishVacancy(id) {
+  if (!confirm('Publish vacancy #' + id + '?')) return;
+  try {
+    const results = await api('/api/vacancy/' + id + '/publish', 'POST');
+    const ok = results.filter(r => r.success).length;
+    toast('Published ' + ok + '/' + results.length + ' platforms. Refreshing...', 'success');
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {}
+}
+
+async function deleteVacancy(id) {
+  if (!confirm('Delete vacancy #' + id + '? This cannot be undone.')) return;
+  if (!confirm('Are you sure?')) return;
+  try {
+    await api('/api/vacancy/' + id + '/delete', 'POST');
+    toast('Deleted. Refreshing...', 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {}
+}
+
+async function checkDuplicate(id) {
+  try {
+    const result = await api('/api/vacancy/' + id + '/duplicate-check', 'POST');
+    if (result.is_duplicate) {
+      toast('⚠️ Duplicate of #' + result.matched_vacancy_id + ' (score: ' + result.similarity_score.toFixed(2) + ') — ' + (result.reason || ''), 'error');
+    } else {
+      toast('✅ No duplicate found (best: ' + result.similarity_score.toFixed(2) + ')', 'success');
+    }
+    console.log('Duplicate check:', result);
+  } catch (e) {}
+}
+</script>
+</body>
+</html>
