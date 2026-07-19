@@ -719,6 +719,30 @@ def create_app():
     from validator.dashboard import dashboard_bp as validator_bp
     app.register_blueprint(validator_bp)
 
+    from config.env_loader import get_config
+    cfg = get_config().get('dashboard', {})
+    auth_user = cfg.get('user', 'admin') or 'admin'
+    auth_pass = cfg.get('password', '')
+
+    if auth_pass:
+        import functools
+        from flask import Response
+
+        def check_auth(u: str, p: str) -> bool:
+            return u == auth_user and p == auth_pass
+
+        def authenticate() -> Response:
+            return Response(
+                'Authentication required', 401,
+                {'WWW-Authenticate': 'Basic realm="Ghost Dashboard"'},
+            )
+
+        @app.before_request
+        def require_auth():
+            auth = request.authorization
+            if not auth or not check_auth(auth.username, auth.password):
+                return authenticate()
+
     return app
 
 

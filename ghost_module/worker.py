@@ -51,11 +51,13 @@ def _load_state():
 
 
 def _publish_loop():
+    from ghost_module.alert import send_alert
     from ghost_module.automation import process_pending_scheduled, apply_rules_to_queue
     from ghost_module.queue_service import get_queue
     from ghost_module.publish_manager import publish_queue_item
 
     while WORKER_STATE['running']:
+        loop_failures = 0
         try:
             ready_ids = process_pending_scheduled()
             if ready_ids:
@@ -79,14 +81,24 @@ def _publish_loop():
                             WORKER_STATE['processed'] += 1
                         else:
                             WORKER_STATE['failed'] += 1
+                            loop_failures += 1
                     except Exception as e:
                         logger.error(f'Worker error on item {qi.id}: {e}')
                         WORKER_STATE['failed'] += 1
+                        loop_failures += 1
+
+            if loop_failures >= 3:
+                send_alert(
+                    f'Worker failed {loop_failures} items in last cycle.\n'
+                    f'Total processed: {WORKER_STATE["processed"]}\n'
+                    f'Total failed: {WORKER_STATE["failed"]}'
+                )
 
             WORKER_STATE['last_run'] = datetime.utcnow().isoformat()
             _save_state()
         except Exception as e:
             logger.error(f'Worker loop error: {e}')
+            send_alert(f'Worker loop crashed: {e}')
 
         for _ in range(WORKER_STATE['poll_interval']):
             if not WORKER_STATE['running']:

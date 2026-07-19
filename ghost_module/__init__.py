@@ -21,12 +21,9 @@ from captions import CaptionResult
 from publisher import FacebookPublisher, PublisherPipeline
 
 
-_CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'settings.json')
-
-
 def _load_config() -> dict:
-    with open(_CONFIG_PATH) as f:
-        return json.load(f)
+    from config.env_loader import get_config
+    return get_config()
 
 
 def _ensure_db():

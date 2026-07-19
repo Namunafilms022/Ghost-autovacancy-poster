@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ghost_data:/app/data
+      - ghost_output:/app/output
+    command: python main.py --dashboard
+    restart: unless-stopped
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ghost_data:/app/data
+      - ghost_output:/app/output
+    command: python main.py --api
+    restart: unless-stopped
+
+  worker:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ghost_data:/app/data
+      - ghost_output:/app/output
+    command: python main.py --worker --poll-interval 30
+    restart: unless-stopped
+    depends_on:
+      - dashboard
+
+volumes:
+  ghost_data:
+  ghost_output:

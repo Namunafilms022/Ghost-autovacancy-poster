@@ -9,5 +9,6 @@ data/worker_state.json
 data/validation_results.json
 output/
 queue/
+backups/
 *.log
 .DS_Store
